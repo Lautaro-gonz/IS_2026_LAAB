@@ -1,12 +1,12 @@
-# KodoLabs
+KodoLabs
 
-## Proyecto — Sistema de gestión de turnos médicos
+Proyecto — Sistema de gestión de turnos médicos
 
 Sistema web orientado a digitalizar la asignación de turnos en una clínica médica, reemplazando el uso de llamadas telefónicas y planillas de Excel por una solución centralizada, eficiente y accesible.
 
 ---
 
-## 📌 ¿Por qué elegimos este proyecto?
+¿Por qué elegimos este proyecto?
 
 Elegimos este problema porque representa una situación real muy común en centros de salud, donde la gestión manual de turnos genera ineficiencias, errores y pérdida de tiempo tanto para el personal como para los pacientes.
 
@@ -20,26 +20,26 @@ Además, es un sistema escalable que puede evolucionar hacia soluciones más com
 
 ---
 
-## 👥 Integrantes
+👥 Integrantes
 
 | Nombre                          | Rol           | GitHub |
 |---------------------------------|--------------|--------|
-| Gonzalez Lautaro Sebastian      | Scrum Master | @usuario |
+| Gonzalez Lautaro Sebastian      | Scrum Master | @Lautaro-gonz |
 | Alonso Angelina                 | Dev Lead     | @usuario |
 | Piedrafita José Augusto         | QA Lead      | @usuario |
 | Bruno                           | UX Lead      | @usuario |
 
 ---
 
-## 🧠 Descripción del sistema
+Descripción del sistema
 
 El sistema permite gestionar turnos médicos de manera digital, facilitando la interacción entre recepcionistas y pacientes.
 
-### 👤 Usuarios principales:
+Usuarios principales:
 - Recepcionista
 - Paciente
 
-### ⚙️ Funcionalidades principales:
+Funcionalidades principales:
 
 - Solicitar turnos seleccionando:
   - Médico
@@ -60,6 +60,6 @@ El sistema permite gestionar turnos médicos de manera digital, facilitando la i
 
 ---
 
-## 🔗 Enlaces
+Enlaces
 
-- 📊 Tablero Kanban: *(agregar link aquí)*
+ Tablero Kanban: 
