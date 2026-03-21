@@ -25,9 +25,9 @@ Además, es un sistema escalable que puede evolucionar hacia soluciones más com
 | Nombre                          | Rol           | GitHub |
 |---------------------------------|--------------|--------|
 | Gonzalez Lautaro Sebastian      | Scrum Master | @Lautaro-gonz |
-| Alonso Angelina                 | Dev Lead     | @usuario |
-| Piedrafita José Augusto         | QA Lead      | @usuario |
-| Bruno                           | UX Lead      | @usuario |
+| Alonso Angelina                 | Dev Lead     | @angelinaalonsoucp
+| Piedrafita José Augusto         | QA Lead      | @Gu7y |
+| Bruno                           | UX Lead      | @estudiandob-dev|
 
 ---
 
