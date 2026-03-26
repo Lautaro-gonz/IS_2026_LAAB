@@ -62,5 +62,6 @@ Funcionalidades principales:
 
 Enlaces
 
- Tablero Kanban: https://github.com/users/estudiandob-dev/projects/1/views/1
+ Tablero Kanban: https://github.com/users/estudiandob-dev/projects/1
+prueven si ese link les anda
 Matriz de riesgo: https://docs.google.com/document/d/1dPqcOUwNv94cnZP1wG7At5TvyJGaC3kpGKOjuZYRfXo/edit?usp=sharing
