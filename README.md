@@ -62,6 +62,6 @@ Funcionalidades principales:
 
 Enlaces
 
- Tablero Kanban: https://github.com/users/Lautaro-gonz/projects/2
+ Tablero Kanban: [https://github.com/users/Lautaro-gonz/projects/2](https://github.com/users/estudiandob-dev/projects/1/views/1)
  
 Matriz de riesgo: https://docs.google.com/document/d/1dPqcOUwNv94cnZP1wG7At5TvyJGaC3kpGKOjuZYRfXo/edit?usp=sharing
