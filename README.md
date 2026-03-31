@@ -57,7 +57,12 @@ Funcionalidades principales:
   - Confirmado
   - Cancelado
   - Atendido
+Patrones de diseño
+Factory Method — Observer — State — Repository
 
+Caso de uso — Crear Turno y Verificar Turno
+La Recepcionista selecciona un médico, especialidad y fecha. El sistema consulta la agenda del médico y devuelve los horarios disponibles. La Recepcionista elige un horario y el sistema valida que esté libre. Si todo es correcto, el sistema crea el turno con estado PENDIENTE y genera una notificación simulada al paciente confirmando la creación.
+Para verificar, la Recepcionista o el Paciente consultan los turnos existentes. El sistema devuelve el listado con los datos del turno — fecha, médico, estado — permitiendo confirmar que el turno fue creado correctamente.
 ---
 
 Enlaces
@@ -65,3 +70,5 @@ Enlaces
  Tablero Kanban: https://github.com/users/estudiandob-dev/projects/1
  
 Matriz de riesgo: https://docs.google.com/document/d/1dPqcOUwNv94cnZP1wG7At5TvyJGaC3kpGKOjuZYRfXo/edit?usp=sharing
+
+
