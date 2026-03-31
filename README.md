@@ -66,6 +66,10 @@ Factory Method — Observer — State — Repository
 Caso de uso — Crear Turno y Verificar Turno
 
 La recepcionista
+
+
+
+
 ---
 
 Enlaces
