@@ -1,32 +1,26 @@
-## Patrones de Diseño — TP1
-**Proyecto:** Sistema de Gestión de Turnos — Clínica Médica
-**Entrega:** TP1
-**Grupo:** LAAB
+Patrones de Diseño — TP1
+Proyecto: Sistema de Gestión de Turnos — Clínica Médica
+Entrega: TP1
+Grupo: [tu grupo]
 
----
+Índice
 
-## Índice
-- Observer (Comportamental)
-- State (Comportamental)
-- Diagrama de relaciones
+Observer (Comportamental)
+State (Comportamental)
+Diagrama de relaciones
 
----
 
-# Patrón 1: Observer
-
-### Intención
+Patrón 1: Observer
+Intención
 Definir una dependencia uno-a-muchos entre objetos, de modo que cuando uno cambia de estado todos sus dependientes sean notificados automáticamente, sin que el sujeto conozca a sus observadores concretos.
+Problema que resuelve en el sistema
+Cuando se crea un Turno, el sistema necesita reaccionar de forma inmediata y automática:
 
-### Problema que resuelve en el sistema
-Cuando se crea un `Turno`, el sistema necesita reaccionar de forma inmediata y automática:
+Generar una Notificacion simulada al paciente confirmando el turno
+Registrar el evento para que la Recepcionista pueda verificar la creación
 
-- Generar una `Notificacion` simulada al paciente confirmando el turno
-- Registrar el evento para que la Recepcionista pueda verificar la creación
-
-Sin Observer, la clase `Turno` tendría que llamar directamente a cada componente que reacciona:
-
-```python
-# ❌ Sin patrón — acoplamiento fuerte
+Sin Observer, la clase Turno tendría que llamar directamente a cada componente que reacciona:
+python# ❌ Sin patrón — acoplamiento fuerte
 class Turno:
     def confirmar(self):
         self.estado = EstadoTurno.PENDIENTE
@@ -34,32 +28,16 @@ class Turno:
         RegistroSistema().registrar(self)     # Turno conoce Registro
         # Si mañana se agrega un log de auditoria
         # → hay que modificar la clase Turno ❌
-```
-
-Cada nuevo componente que reaccione al turno fuerza una modificación en `Turno`, violando el principio Open/Closed.
-
-### Justificación de la elección
-
-Se eligió Observer porque el problema es exactamente para el que fue diseñado: un objeto (`Turno`) genera un evento de dominio al ser creado, y múltiples componentes deben reaccionar sin que el turno los conozca.
-
-**¿Por qué Observer y no llamadas directas?**
-Con llamadas directas, `Turno` queda acoplado a `Notificacion` y a cualquier otro componente que reaccione. Con Observer, `Turno` solo conoce la interfaz `ObservadorTurno`. Agregar un nuevo observador no requiere tocar `Turno` en absoluto.
-
-**¿Por qué Observer y no Mediator?**
+Cada nuevo componente que reaccione al turno fuerza una modificación en Turno, violando el principio Open/Closed.
+Justificación de la elección
+Se eligió Observer porque el problema es exactamente para el que fue diseñado: un objeto (Turno) genera un evento de dominio al ser creado, y múltiples componentes deben reaccionar sin que el turno los conozca.
+¿Por qué Observer y no llamadas directas?
+Con llamadas directas, Turno queda acoplado a Notificacion y a cualquier otro componente que reaccione. Con Observer, Turno solo conoce la interfaz ObservadorTurno. Agregar un nuevo observador no requiere tocar Turno en absoluto.
+¿Por qué Observer y no Mediator?
 Mediator centraliza comunicación bidireccional entre múltiples objetos. Observer es más simple y directo para este caso concreto de "un emisor, múltiples receptores pasivos". Agregar Mediator sería sobrediseño para este escenario.
-
-### Clases involucradas
-
-| Clase | Rol en el patrón |
-|---|---|
-| `ObservadorTurno` | Observer abstracto (interfaz) |
-| `NotificadorPaciente` | Observer concreto |
-| `Turno` | Subject (sujeto observable) |
-| `GestionTurnos` | Gestiona la inyección de observers |
-
-### Relaciones entre clases
-
-```
+Clases involucradas
+ClaseRol en el patrónObservadorTurnoObserver abstracto (interfaz)NotificadorPacienteObserver concretoTurnoSubject (sujeto observable)GestionTurnosGestiona la inyección de observers
+Relaciones entre clases
 ObservadorTurno  (abstract)
     └── NotificadorPaciente
 
@@ -70,19 +48,15 @@ Turno  (Subject)
 
 GestionTurnos
     └── crea Turno e inyecta los observers
-```
+Funcionamiento general
 
-### Funcionamiento general
+GestionTurnos tiene una lista de observadores globales.
+Al crear un turno, el sistema inyecta esos observadores en la nueva instancia de Turno.
+Cuando el turno cambia a estado PENDIENTE, se ejecuta _notificar(), que itera la lista y llama on_turno_creado(self) en cada observer.
+NotificadorPaciente decide qué hacer: imprime/simula el envío de la notificación al paciente.
 
-1. `GestionTurnos` tiene una lista de observadores globales.
-2. Al crear un turno, el sistema inyecta esos observadores en la nueva instancia de `Turno`.
-3. Cuando el turno cambia a estado PENDIENTE, se ejecuta `_notificar()`, que itera la lista y llama `on_turno_creado(self)` en cada observer.
-4. `NotificadorPaciente` decide qué hacer: imprime/simula el envío de la notificación al paciente.
-
-### Ejemplo en el código
-
-```python
-# patterns/observer.py
+Ejemplo en el código
+python# patterns/observer.py
 
 class ObservadorTurno(ABC):
     @abstractmethod
@@ -93,10 +67,7 @@ class NotificadorPaciente(ObservadorTurno):
         print(f"[NOTIFICACION] Paciente: {turno.paciente.nombre} "
               f"— Turno creado con médico: {turno.medico.nombre} "
               f"para el {turno.fecha} a las {turno.hora_inicio}")
-```
-
-```python
-# domain/turno.py — el Subject
+python# domain/turno.py — el Subject
 
 class Turno:
     def __init__(self, ...):
@@ -112,10 +83,7 @@ class Turno:
     def _notificar(self) -> None:
         for obs in self._observadores:
             obs.on_turno_creado(self)   # Turno NO sabe qué hace cada observer
-```
-
-```python
-# services/gestion_turnos.py — inyección de observers
+python# services/gestion_turnos.py — inyección de observers
 
 def crear_turno(self, paciente, medico, fecha, hora_inicio, hora_fin):
     turno = Turno(...)
@@ -123,29 +91,15 @@ def crear_turno(self, paciente, medico, fecha, hora_inicio, hora_fin):
         turno.agregar_observador(observador)
     turno.cambiar_estado(EstadoTurno.PENDIENTE)  # dispara notificación
     return turno
-```
+Mejora que aporta
+AspectoSin ObserverCon ObserverAcoplamientoTurno conoce todos los componentesTurno solo conoce ObservadorTurnoAgregar log de auditoríaModificar TurnoCrear LogAuditoria(ObservadorTurno)Responsabilidad únicaVioladaTurno no sabe nada de notificacionesTestabilidadDifícilFácil, se inyectan mocks en el test
 
-### Mejora que aporta
-
-| Aspecto | Sin Observer | Con Observer |
-|---|---|---|
-| Acoplamiento | `Turno` conoce todos los componentes | `Turno` solo conoce `ObservadorTurno` |
-| Agregar log de auditoría | Modificar `Turno` | Crear `LogAuditoria(ObservadorTurno)` |
-| Responsabilidad única | Violada | `Turno` no sabe nada de notificaciones |
-| Testabilidad | Difícil | Fácil, se inyectan mocks en el test |
-
----
-
-# Patrón 2: State
-
-### Intención
+Patrón 2: State
+Intención
 Permitir que un objeto altere su comportamiento cuando su estado interno cambia, encapsulando cada estado en su propia clase y delegando las transiciones a esas clases, eliminando condicionales anidados.
-
-### Problema que resuelve en el sistema
-`Turno` tiene 4 estados con transiciones estrictas: PENDIENTE → CONFIRMADO → ATENDIDO / CANCELADO. Sin State, toda la lógica de transición vive en `Turno` como una cadena de condicionales:
-
-```python
-# ❌ Sin patrón — condicionales anidados
+Problema que resuelve en el sistema
+Turno tiene 4 estados con transiciones estrictas: PENDIENTE → CONFIRMADO → ATENDIDO / CANCELADO. Sin State, toda la lógica de transición vive en Turno como una cadena de condicionales:
+python# ❌ Sin patrón — condicionales anidados
 class Turno:
     def confirmar(self):
         if self.estado == "PENDIENTE":
@@ -159,34 +113,16 @@ class Turno:
         else:
             raise Exception("No se puede cancelar un turno en estado " + self.estado)
     # Cada nuevo estado o regla → modificar Turno ❌
-```
-
-A medida que crecen los estados y las reglas, `Turno` se vuelve una clase difícil de mantener y propensa a errores.
-
-### Justificación de la elección
-
-Se eligió State porque el ciclo de vida del turno tiene reglas de transición claras y cada estado tiene comportamiento diferente. Encapsular cada estado en su propia clase hace que las reglas sean explícitas y que agregar un nuevo estado no requiera modificar `Turno`.
-
-**¿Por qué State y no un simple enum con ifs?**
-Un enum alcanza para guardar el valor del estado, pero no para encapsular las reglas de transición. Con State, si intentás cancelar un turno ya ATENDIDO, es el propio estado quien rechaza la operación. Con ifs, esa validación queda dispersa en múltiples métodos de `Turno`.
-
-**¿Por qué State y no Strategy?**
+A medida que crecen los estados y las reglas, Turno se vuelve una clase difícil de mantener y propensa a errores.
+Justificación de la elección
+Se eligió State porque el ciclo de vida del turno tiene reglas de transición claras y cada estado tiene comportamiento diferente. Encapsular cada estado en su propia clase hace que las reglas sean explícitas y que agregar un nuevo estado no requiera modificar Turno.
+¿Por qué State y no un simple enum con ifs?
+Un enum alcanza para guardar el valor del estado, pero no para encapsular las reglas de transición. Con State, si intentás cancelar un turno ya ATENDIDO, es el propio estado quien rechaza la operación. Con ifs, esa validación queda dispersa en múltiples métodos de Turno.
+¿Por qué State y no Strategy?
 Strategy varía el cómo se ejecuta un algoritmo. State varía el comportamiento completo del objeto según su situación actual e incluye las reglas de qué transiciones están permitidas. El problema aquí es de ciclo de vida con restricciones, no de algoritmos intercambiables.
-
-### Clases involucradas
-
-| Clase | Rol en el patrón |
-|---|---|
-| `EstadoTurno` | State abstracto (interfaz) |
-| `EstadoPendiente` | State concreto |
-| `EstadoConfirmado` | State concreto |
-| `EstadoCancelado` | State concreto |
-| `EstadoAtendido` | State concreto |
-| `Turno` | Context (delega comportamiento al estado) |
-
-### Relaciones entre clases
-
-```
+Clases involucradas
+ClaseRol en el patrónEstadoTurnoState abstracto (interfaz)EstadoPendienteState concretoEstadoConfirmadoState concretoEstadoCanceladoState concretoEstadoAtendidoState concretoTurnoContext (delega comportamiento al estado)
+Relaciones entre clases
 EstadoTurno  (abstract)
     ├── EstadoPendiente
     ├── EstadoConfirmado
@@ -198,19 +134,15 @@ Turno  (Context)
     ├── confirmar()   → delega a estado.confirmar(self)
     ├── cancelar()    → delega a estado.cancelar(self)
     └── atender()     → delega a estado.atender(self)
-```
+Funcionamiento general
 
-### Funcionamiento general
+Turno nace con EstadoPendiente como estado inicial.
+Cada operación (confirmar, cancelar, atender) se delega al objeto de estado actual.
+El estado decide si la transición es válida y, si lo es, cambia el estado del contexto.
+Si la transición no está permitida, el estado lanza una excepción descriptiva sin que Turno tenga que saberlo.
 
-1. `Turno` nace con `EstadoPendiente` como estado inicial.
-2. Cada operación (`confirmar`, `cancelar`, `atender`) se delega al objeto de estado actual.
-3. El estado decide si la transición es válida y, si lo es, cambia el estado del contexto.
-4. Si la transición no está permitida, el estado lanza una excepción descriptiva sin que `Turno` tenga que saberlo.
-
-### Ejemplo en el código
-
-```python
-# patterns/state.py
+Ejemplo en el código
+python# patterns/state.py
 
 class EstadoTurno(ABC):
     @abstractmethod
@@ -243,10 +175,7 @@ class EstadoConfirmado(EstadoTurno):
     def atender(self, turno):
         turno.set_estado(EstadoAtendido())
         print("[STATE] Turno marcado como atendido.")
-```
-
-```python
-# domain/turno.py — el Context
+python# domain/turno.py — el Context
 
 class Turno:
     def __init__(self, ...):
@@ -263,13 +192,5 @@ class Turno:
 
     def atender(self) -> None:
         self._estado.atender(self)
-```
-
-### Mejora que aporta
-
-| Aspecto | Sin State | Con State |
-|---|---|---|
-| Reglas de transición | Ifs dispersos en `Turno` | Encapsuladas en cada clase de estado |
-| Agregar nuevo estado | Modificar todos los métodos de `Turno` | Crear nueva clase de estado |
-| Claridad | Difícil saber qué transiciones existen | Cada clase de estado es autoexplicativa |
-| Errores en transición | Silenciosos o mezclados | Cada estado lanza su propia excepción |
+Mejora que aporta
+AspectoSin StateCon StateReglas de transiciónIfs dispersos en TurnoEncapsuladas en cada clase de estadoAgregar nuevo estadoModificar todos los métodos de TurnoCrear nueva clase de estadoClaridadDifícil saber qué transiciones existenCada clase de estado es autoexplicativaErrores en transiciónSilenciosos o mezcladosCada estado lanza su propia excepción
