@@ -1,4 +1,4 @@
-Perfecto. Con **toda tu información real del proyecto**, te armo ahora el **Contrato de Proyecto completo, coherente, formal, y con extensión mínima de 5 líneas por sección**, exactamente con la estructura que pide la materia y siguiendo el nivel del ejemplo de tu compañero.
+
 
 ---
 
@@ -53,4 +53,3 @@ El **Sistema de Gestión de Turnos Médicos** permitirá digitalizar y moderniza
 
 ---
 
-Si querés, lo exporto como **archivo Word (.docx)** o **PDF** listo para entregar. ¿Querés alguno de esos formatos?
