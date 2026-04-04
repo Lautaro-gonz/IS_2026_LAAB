@@ -1,13 +1,17 @@
 
 ---
 
+
 #  **Plan de Contingencia – Sistema de Gestión de Turnos Médicos**
+
 
 Este documento detalla las acciones preventivas y las medidas de contingencia para responder a los riesgos identificados durante el desarrollo del sistema de gestión de turnos médicos.
 
 ---
 
+
 ## 📊 **Resumen de Riesgos Críticos**
+
 
 | Riesgo                                                           | Categoría  | Probabilidad | Impacto |
 | ---------------------------------------------------------------- | ---------- | ------------ | ------- |
@@ -19,11 +23,15 @@ Este documento detalla las acciones preventivas y las medidas de contingencia pa
 
 ---
 
+
 # 🛠️ **Acciones de Mitigación y Planes de Contingencia**
+
 
 ---
 
+
 ## **1. Retraso en el desarrollo por conformación tardía del equipo**
+
 
 **Riesgo:** El proyecto inicia con desventaja temporal porque el equipo se conformó más tarde que otros grupos.
 **Acción Preventiva:** Organizar el trabajo en tareas pequeñas priorizadas mediante un tablero Kanban para optimizar el tiempo disponible.
@@ -31,7 +39,9 @@ Este documento detalla las acciones preventivas y las medidas de contingencia pa
 
 ---
 
+
 ## **2. Contratiempos operativos por menor disponibilidad de algunos integrantes**
+
 
 **Riesgo:** Algunos integrantes del equipo tienen horarios reducidos, lo que afecta el avance semanal.
 **Acción Preventiva:** Coordinar horarios comunes y establecer una planificación semanal clara para asegurar la participación mínima requerida.
@@ -39,7 +49,9 @@ Este documento detalla las acciones preventivas y las medidas de contingencia pa
 
 ---
 
+
 ## **3. Falta de experiencia en tecnologías automatizadas**
+
 
 **Riesgo:** Dificultad técnica al implementar integraciones o sistemas automatizados, generando errores o demoras.
 **Acción Preventiva:** Investigar previamente las tecnologías a utilizar, apoyarse en manuales, videos, documentación oficial y recursos de aprendizaje.
@@ -47,7 +59,9 @@ Este documento detalla las acciones preventivas y las medidas de contingencia pa
 
 ---
 
+
 ## **4. Falta de claridad en algunos requisitos del sistema de turnos**
+
 
 **Riesgo:** Ambigüedades en requisitos que pueden causar retrabajo.
 **Acción Preventiva:** Definir claramente los requisitos antes de comenzar a desarrollar y validarlos en reuniones con el equipo.
@@ -55,7 +69,9 @@ Este documento detalla las acciones preventivas y las medidas de contingencia pa
 
 ---
 
+
 ## **5. Bajo desempeño por falta de experiencia trabajando juntos**
+
 
 **Riesgo:** El equipo no está acostumbrado a coordinarse, lo que dificulta el avance y compromete la calidad del trabajo.
 **Acción Preventiva:** Reforzar la comunicación con reuniones periódicas, seguimiento del progreso y uso de herramientas colaborativas.
