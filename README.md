@@ -5,171 +5,11 @@
 
 ---
 
-## Descripción del proyecto
+## Sobre este repositorio
 
-Este repositorio contiene el desarrollo del **Sistema de Gestión de Turnos** para una clínica privada, construido en el marco de la materia Ingeniería de Software II de la Universidad de la Cuenca del Plata.
+Este repositorio contiene el desarrollo completo del **Sistema de Gestión de Turnos** para una clínica privada, construido en el marco de la materia Ingeniería de Software II de la Universidad de la Cuenca del Plata.
 
-El sistema permite a recepcionistas y pacientes gestionar turnos médicos de forma digital, reemplazando el proceso manual por teléfono y planillas Excel. Está implementado en **Python puro** con lógica de dominio orientada a objetos, e incorpora una **interfaz web en Django** con autenticación por roles.
-
----
-
-## Funcionalidades implementadas
-
-| Funcionalidad | Estado | Descripción |
-|---|---|---|
-| Solicitar turno | Completo | Selección de médico, especialidad, fecha y hora |
-| Confirmar turno | Completo | Transición de estado PENDIENTE → CONFIRMADO |
-| Cancelar turno | Completo | Con motivo, notifica automáticamente |
-| Reprogramar turno | Completo | Cambia fecha/hora, vuelve a PENDIENTE |
-| Ver agenda del médico | Completo | Filtra por médico y fecha |
-| Ver turnos por paciente | Completo | Búsqueda por DNI |
-| Cálculo de costo automático | Completo | Según obra social del paciente |
-| Notificaciones | Completo | Email, SMS y consola (simulados) |
-| Interfaz web con login | Completo | 4 roles: admin, secretaria, doctor, paciente |
-
----
-
-## Arquitectura del sistema
-
-El proyecto está dividido en dos capas independientes:
-
-```
-sistemadeturno.py   ← Lógica de dominio completa (Python puro)
-django_app/         ← Interfaz web que consume la lógica anterior
-```
-
-La lógica de negocio **no depende de Django**. Los patrones de diseño están implementados en `sistemadeturno.py` y Django únicamente agrega la capa de presentación web.
-
-### Clases principales
-
-```
-ObraSocial          Obras sociales soportadas y porcentajes de cobertura
-Paciente            Datos del paciente, obra social opcional
-Medico              Nombre, matrícula y especialidad (Enum con 6 valores)
-CalculoCosto        Cálculo del monto según cobertura (método estático)
-Turno               Clase central. Integra State y Observer
-SistemaTurnos       Registro global de turnos en memoria
-```
-
----
-
-## Patrones de diseño
-
-### State — gestión de estados del turno
-
-Cada turno pasa por estados bien definidos. La clase `Turno` **no tiene ningún `if/elif`** para manejar estados: delega completamente al objeto de estado actual.
-
-```
-PENDIENTE → CONFIRMADO → EN ATENCIÓN → COMPLETADO
-    ↓              ↓
- CANCELADO      CANCELADO
-```
-
-| Estado | Puede hacer | No puede hacer |
-|---|---|---|
-| `PENDIENTE` | confirmar, cancelar, reprogramar | atender, completar |
-| `CONFIRMADO` | atender, cancelar, reprogramar* | confirmar, completar |
-| `EN ATENCIÓN` | completar | todo lo demás |
-| `COMPLETADO` | — | todo (lanza `ValueError`) |
-| `CANCELADO` | — | todo (lanza `ValueError`) |
-
-> \* Al reprogramar desde `CONFIRMADO`, el turno vuelve a `PENDIENTE` porque la nueva fecha requiere nueva confirmación.
-
-### Observer — notificaciones automáticas
-
-Cada vez que un turno cambia de estado, notifica automáticamente a todos los observadores suscritos. Los observadores se registran al crear el turno según los datos del paciente:
-
-```python
-if paciente.email:    turno.suscribir(EmailObservador(paciente.email))
-if paciente.telefono: turno.suscribir(SMSObservador(paciente.telefono))
-turno.suscribir(ConsoleObservador())  # siempre activo
-```
-
----
-
-## Lógica de obras sociales
-
-El sistema soporta tres obras sociales regionales. Un paciente **sin obra social puede atenderse** y paga el costo completo de la consulta.
-
-| Obra social | Cobertura | Paga el paciente |
-|---|---|---|
-| Sin obra social | 0% | $10.000 |
-| IPS Misiones | 80% | $2.000 |
-| OSECAC | 75% | $2.500 |
-| OSDE | 90% | $1.000 |
-
----
-
-## Interfaz web (Django)
-
-La aplicación web tiene login con cuatro roles diferenciados:
-
-| Panel | Rol | Funcionalidades |
-|---|---|---|
-| Login | Todos | Autenticación con usuario y contraseña |
-| Panel secretaria | `secretaria` / `admin` | Ver agenda, confirmar, cancelar, reprogramar turnos |
-| Nuevo turno | `secretaria` / `admin` | Formulario con cálculo automático de costo |
-| Panel doctor | `doctor` | Ver agenda del día filtrada por su nombre |
-| Panel paciente | `paciente` | Buscar turnos propios por DNI |
-
----
-
-## Menú interactivo (consola)
-
-Además de la interfaz web, el sistema incluye un menú en consola con 6 opciones:
-
-```
-[1] Solicitar turno
-[2] Confirmar turno
-[3] Cancelar turno
-[4] Reprogramar turno
-[5] Ver agenda del médico
-[6] Ver mis turnos (por DNI)
-```
-
-Todas las entradas tienen validación: DNI (solo dígitos, mín. 7 caracteres), fechas (formato `AAAA-MM-DD`), horas (formato `HH:MM`) y campos de texto (no acepta vacíos).
-
----
-
-## Instalación y ejecución local
-
-### Requisitos
-
-- Python 3.10 o superior
-- pip
-
-### 1. Clonar el repositorio
-
-```bash
-git clone https://github.com/ucpinc/sistema-turnos.git
-cd sistema-turnos
-```
-
-### 2. Crear entorno virtual e instalar dependencias
-
-```bash
-python -m venv venv
-source venv/bin/activate        # Linux / macOS
-venv\Scripts\activate           # Windows
-
-pip install -r requirements.txt
-```
-
-### 3a. Ejecutar en consola (sin Django)
-
-```bash
-python src/sistemadeturno.py
-```
-
-### 3b. Ejecutar la interfaz web (Django)
-
-```bash
-cd django_app
-python manage.py migrate
-python manage.py runserver
-```
-
-Luego abrí `http://127.0.0.1:8000` en el navegador.
+El proyecto está organizado en carpetas temáticas. Esta guía explica qué hay en cada una y qué va a encontrar quien navegue el repositorio.
 
 ---
 
@@ -177,20 +17,59 @@ Luego abrí `http://127.0.0.1:8000` en el navegador.
 
 ```
 /
+├── diseño/
+├── documentos/
+│   ├── AI_LOG.md
+│   ├── PATRONES_DISENO.md
+│   ├── contrato_proyecto.md
+│   ├── matriz de riesgo.png
+│   └── plan_contingencia.md
+├── pruebas/
 ├── src/
-│   └── sistemadeturno.py       # Lógica de dominio completa
-├── django_app/
-│   ├── turnos/                 # App principal
-│   ├── accounts/               # Login y autenticación
-│   └── manage.py
-├── tests/                      # Pruebas unitarias (TP2)
-├── design/                     # Prototipos Figma y diagramas
-├── docs/
-│   ├── contrato-de-proyecto.md
-│   ├── patrones-tp1.md         # Descripción técnica de los patrones
-│   └── AI_LOG.md               # Registro de uso de IA
 └── README.md
 ```
+
+---
+
+## Guía de navegación
+
+### `diseño/`
+
+Carpeta destinada a los prototipos de interfaz de usuario y recursos visuales del proyecto. Aquí se van a encontrar los mockups de las pantallas del sistema desarrollados en Figma, incluyendo las vistas de la recepcionista, el médico y el paciente. También se incluirán las evaluaciones de usabilidad aplicadas según normas ISO. **Actualmente en construcción** — los prototipos se entregan en las semanas 6 y 7.
+
+---
+
+### `documentos/`
+
+Carpeta principal de documentación académica y técnica del proyecto. Contiene todos los archivos de texto y recursos que respaldan las decisiones tomadas durante el desarrollo.
+
+- **`contrato_proyecto.md`** — Documento inicial del proyecto. Define el escenario elegido (sistema de turnos para clínica privada), la metodología de desarrollo adoptada, los roles asignados a cada integrante y los acuerdos de trabajo del equipo: horarios, canales de comunicación, frecuencia de commits y criterios para mover tarjetas en el tablero Kanban.
+
+- **`PATRONES_DISENO.md`** — Descripción técnica detallada de los dos patrones de diseño implementados en el sistema: **State** (gestión de estados del turno sin condicionales) y **Observer** (notificaciones automáticas al paciente ante cada cambio de estado). Incluye diagramas, ejemplos de código y justificación de cada decisión de diseño.
+
+- **`AI_LOG.md`** — Registro semanal del uso de herramientas de inteligencia artificial durante el desarrollo del proyecto. Documenta qué herramientas se usaron, con qué propósito, qué se obtuvo y qué ajustes realizó el equipo sobre el resultado generado.
+
+- **`matriz de riesgo.png`** — Imagen con la matriz de riesgos del proyecto. Identifica los riesgos potenciales del desarrollo, su probabilidad de ocurrencia, su impacto y las estrategias de mitigación definidas por el equipo.
+
+- **`plan_contingencia.md`** — Plan de acción ante los riesgos identificados en la matriz. Describe qué hace el equipo si alguno de los riesgos se materializa durante el desarrollo.
+
+---
+
+### `pruebas/`
+
+Carpeta destinada a las pruebas unitarias del sistema. Aquí se van a encontrar los casos de prueba escritos con la metodología TDD (Test Driven Development) y la configuración de automatización de pruebas con integración continua. **Actualmente en construcción** — las pruebas se desarrollan en las semanas 8 a 11.
+
+---
+
+### `src/`
+
+Carpeta destinada al código fuente del sistema. Aquí va a estar el archivo principal `sistemadeturno.py` con toda la lógica de dominio en Python puro, junto con el proyecto Django que agrega la interfaz web con autenticación por roles. **Actualmente en construcción** — el código se integra al repositorio durante el TP1.
+
+---
+
+### `README.md`
+
+Este archivo. Funciona como punto de entrada al repositorio y guía de navegación para cualquier persona que acceda al proyecto.
 
 ---
 
@@ -201,7 +80,7 @@ Luego abrí `http://127.0.0.1:8000` en el navegador.
 | Gonzalez Lautaro Sebastian | Scrum Master | [@Lautaro-gonz](https://github.com/Lautaro-gonz) |
 | Alonso Angelina | Dev Lead | [@angelinaalonsoucp](https://github.com/angelinaalonsoucp) |
 | Piedrafita José Augusto | QA Lead | [@Gu7y](https://github.com/Gu7y) |
-| Bruno | UX Lead | [@estudiandob-dev](https://github.com/estudiandob-dev) |
+| López Bruno Daniel | UX Lead | [@estudiandob-dev](https://github.com/estudiandob-dev) |
 
 ---
 
@@ -210,17 +89,11 @@ Luego abrí `http://127.0.0.1:8000` en el navegador.
 | Hito | Estado |
 |---|---|
 | Sprint 0 — Planificación y configuración | Completo |
-| TP1 — Dominio, patrones y Django | Completo |
-| TP2 — Pruebas, CI y ampliación | Próximamente |
+| TP1 — Dominio, patrones y Django | En curso |
+| TP2 — Pruebas, CI y ampliación | Pendiente |
 
 ---
 
-## Documentación adicional
-
-- [`docs/patrones-tp1.md`](docs/patrones-tp1.md) — Descripción técnica de los patrones State y Observer con ejemplos de código
-- [`docs/contrato-de-proyecto.md`](docs/contrato-de-proyecto.md) — Metodología, roles y acuerdos del equipo
-- [`docs/AI_LOG.md`](docs/AI_LOG.md) — Registro semanal de uso de herramientas de IA
-
----
-
+##Links
+Kanban:https://github.com/users/estudiandob-dev/projects/1/views/1
 > *Ingeniería de Software II · Universidad de la Cuenca del Plata · 2026*
