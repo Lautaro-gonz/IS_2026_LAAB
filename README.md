@@ -95,5 +95,7 @@ Este archivo. Funciona como punto de entrada al repositorio y guía de navegaci�
 ---
 
 ##Links
+
+
 Kanban:https://github.com/users/estudiandob-dev/projects/1/views/1
 > *Ingeniería de Software II · Universidad de la Cuenca del Plata · 2026*
