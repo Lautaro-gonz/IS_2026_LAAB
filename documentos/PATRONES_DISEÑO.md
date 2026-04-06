@@ -2,7 +2,7 @@
 
 **Proyecto:** Sistema de Gestión de Turnos — Clínica Médica  
 **Entrega:** TP1  
-**    EQUIPO:** LAAB
+    EQUIPO: LAAB
 ---
 
 ## Índice
