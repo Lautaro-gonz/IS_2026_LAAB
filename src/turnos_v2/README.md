@@ -1,4 +1,4 @@
-# Turnos Médicos v2 — Sin base de datos (todo en memoria)
+# Turnos Médicos 
 
 ## Cómo levantar
 
@@ -10,7 +10,7 @@ source venv/bin/activate
 # 2. Instalar dependencias
 pip install -r requirements.txt
 
-# 3. Levantar el servidor (sin migrate, sin createsuperuser)
+# 3. Levantar el servidor 
 python manage.py runserver
 ```
 
