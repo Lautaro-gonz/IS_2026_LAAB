@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Turnos Médicos{% endblock %}</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+{% block body %}
+<div class="layout">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="logo">Clínica <span>/ Turnos</span></div>
+    </div>
+    <nav class="sidebar-nav">
+      {% with rol=request.session.usuario.rol %}
+        {% if rol == 'admin' %}
+          <div class="nav-label">Administración</div>
+          <a href="{% url 'accounts:panel_admin' %}" class="nav-link {% if request.resolver_match.url_name == 'panel_admin' %}active{% endif %}">⊞ Usuarios</a>
+          <a href="{% url 'turnos:panel_secretaria' %}" class="nav-link {% if request.resolver_match.url_name == 'panel_secretaria' %}active{% endif %}">📋 Turnos</a>
+          <a href="{% url 'turnos:crear_turno' %}" class="nav-link {% if request.resolver_match.url_name == 'crear_turno' %}active{% endif %}">+ Nuevo turno</a>
+          <div class="nav-label">Reportes</div>
+          <a href="{% url 'accounts:panel_auditoria' %}" class="nav-link {% if request.resolver_match.url_name == 'panel_auditoria' %}active{% endif %}">🔍 Auditoría</a>
+          <a href="{% url 'accounts:panel_pacientes' %}" class="nav-link {% if request.resolver_match.url_name == 'panel_pacientes' %}active{% endif %}">👥 Pacientes</a>
+        {% elif rol == 'secretaria' %}
+          <div class="nav-label">Secretaría</div>
+          <a href="{% url 'turnos:panel_secretaria' %}" class="nav-link {% if request.resolver_match.url_name == 'panel_secretaria' %}active{% endif %}">⊞ Agenda</a>
+          <a href="{% url 'turnos:crear_turno' %}" class="nav-link {% if request.resolver_match.url_name == 'crear_turno' %}active{% endif %}">+ Nuevo turno</a>
+        {% elif rol == 'doctor' %}
+          <div class="nav-label">Doctor</div>
+          <a href="{% url 'turnos:panel_doctor' %}" class="nav-link {% if request.resolver_match.url_name == 'panel_doctor' %}active{% endif %}">⊞ Mi agenda</a>
+        {% elif rol == 'paciente' %}
+          <div class="nav-label">Paciente</div>
+          <a href="{% url 'turnos:panel_paciente' %}" class="nav-link {% if request.resolver_match.url_name == 'panel_paciente' %}active{% endif %}">⊞ Mis turnos</a>
+          <a href="{% url 'turnos:solicitar_turno' %}" class="nav-link {% if request.resolver_match.url_name == 'solicitar_turno' %}active{% endif %}">+ Solicitar turno</a>
+        {% endif %}
+      {% endwith %}
+    </nav>
+    <div class="sidebar-footer">
+      {% with u=request.session.usuario %}
+      {% if u %}
+      <div class="user-chip">
+        <div class="user-avatar">{{ u.nombre_completo|first|upper }}</div>
+        <div>
+          <div class="user-name">{{ u.nombre_completo }}</div>
+          <div class="user-role">{{ u.rol }}</div>
+        </div>
+      </div>
+      <a href="{% url 'accounts:logout' %}" class="btn btn-ghost" style="width:100%;margin-top:10px;justify-content:center;">Cerrar sesión</a>
+      {% endif %}
+      {% endwith %}
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="topbar">
+      <div class="topbar-title">{% block page_title %}{% endblock %}</div>
+      <div class="topbar-actions">{% block topbar_actions %}{% endblock %}</div>
+    </div>
+    <div class="page-content">
+      {% if messages %}
+        <ul class="messages">
+          {% for message in messages %}
+            <li class="message {{ message.tags }}">{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+      {% block content %}{% endblock %}
+    </div>
+  </main>
+</div>
+{% endblock %}
+</body>
+</html>

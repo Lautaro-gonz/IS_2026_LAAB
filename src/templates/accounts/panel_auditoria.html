@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Auditoría{% endblock %}
+{% block page_title %}Registro de movimientos{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'accounts:panel_admin' %}" class="btn btn-ghost btn-sm">← Volver</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="stats-grid">
+  <div class="stat-card blue">
+    <div class="stat-value">{{ stats.total }}</div>
+    <div class="stat-label">Total movimientos</div>
+  </div>
+  <div class="stat-card blue">
+    <div class="stat-value">{{ stats.secretaria }}</div>
+    <div class="stat-label">Secretaria</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-value">{{ stats.doctor }}</div>
+    <div class="stat-label">Doctor</div>
+  </div>
+  <div class="stat-card purple">
+    <div class="stat-value">{{ stats.paciente }}</div>
+    <div class="stat-label">Paciente</div>
+  </div>
+  <div class="stat-card amber">
+    <div class="stat-value">{{ stats.admin }}</div>
+    <div class="stat-label">Admin</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Movimientos del sistema</div>
+  </div>
+
+  <!-- Filtros -->
+  <form method="get" class="filters" style="margin-bottom:20px;">
+    <div class="form-group">
+      <label>Filtrar por rol</label>
+      <select name="rol" onchange="this.form.submit()">
+        <option value="">Todos los roles</option>
+        <option value="admin"      {% if filtro_rol == 'admin'      %}selected{% endif %}>Admin</option>
+        <option value="secretaria" {% if filtro_rol == 'secretaria' %}selected{% endif %}>Secretaria</option>
+        <option value="doctor"     {% if filtro_rol == 'doctor'     %}selected{% endif %}>Doctor</option>
+        <option value="paciente"   {% if filtro_rol == 'paciente'   %}selected{% endif %}>Paciente</option>
+      </select>
+    </div>
+    {% if filtro_rol %}
+      <a href="{% url 'accounts:panel_auditoria' %}" class="btn btn-ghost">Limpiar</a>
+    {% endif %}
+  </form>
+
+  {% if logs %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Fecha y hora</th>
+          <th>Usuario</th>
+          <th>Rol</th>
+          <th>Acción</th>
+          <th>Detalle</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+        <tr>
+          <td style="color:var(--text-muted);font-family:'DM Mono',monospace;font-size:12px;">{{ log.id }}</td>
+          <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text-soft);">{{ log.timestamp }}</td>
+          <td><strong>{{ log.usuario }}</strong></td>
+          <td><span class="badge badge-{{ log.rol }}">{{ log.rol }}</span></td>
+          <td style="font-weight:500;font-size:13px;">{{ log.accion }}</td>
+          <td style="font-size:13px;color:var(--text-soft);">{{ log.detalle }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="icon"></div>
+      <p>No hay movimientos registrados{% if filtro_rol %} para ese rol{% endif %}.</p>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

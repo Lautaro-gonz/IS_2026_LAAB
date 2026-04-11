@@ -1,0 +1,214 @@
+{% extends 'base.html' %}
+{% block title %}Solicitar turno{% endblock %}
+{% block page_title %}Solicitar turno{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'turnos:panel_paciente' %}" class="btn btn-ghost btn-sm">← Volver</a>
+{% endblock %}
+
+{% block content %}
+
+<div style="display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start;">
+
+  <!-- Panel izquierdo: formulario de selección -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:16px;">Elegí tu turno</div>
+
+    <div style="display:flex;flex-direction:column;gap:14px;">
+
+      <div class="form-group">
+        <label>Doctor</label>
+        <select id="select-medico" onchange="buscarHorarios()">
+          <option value="">— Seleccioná —</option>
+          {% for idx, m in medicos %}
+            <option value="{{ idx }}">Dr/a. {{ m.nombre }} — {{ m.especialidad.value }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Fecha</label>
+        <input type="date" id="input-fecha" onchange="buscarHorarios()"
+               min="{{ hoy }}" value="{{ hoy }}">
+      </div>
+
+      <div id="info-medico" style="display:none;padding:10px 14px;background:var(--primary-soft);border-radius:var(--radius);font-size:13px;color:var(--primary);">
+        Atención: <span id="txt-franja"></span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Panel derecho: horarios disponibles -->
+  <div>
+    <div id="panel-horarios" style="display:none;">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <div class="card-title" id="titulo-horarios">Horarios disponibles</div>
+            <div class="card-subtitle" id="subtitulo-horarios"></div>
+          </div>
+        </div>
+
+        <div id="grid-horarios" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;margin-bottom:20px;">
+        </div>
+
+        <div id="panel-confirmacion" style="display:none;border-top:1px solid var(--border);padding-top:20px;">
+          <div style="font-size:14px;font-weight:500;margin-bottom:16px;">
+            Turno seleccionado: <span id="txt-turno-sel" style="color:var(--primary);"></span>
+          </div>
+
+          <form method="post" action="{% url 'turnos:confirmar_solicitud' %}">
+            {% csrf_token %}
+            <input type="hidden" name="medico" id="hid-medico">
+            <input type="hidden" name="fecha"  id="hid-fecha">
+            <input type="hidden" name="hora"   id="hid-hora">
+
+            <div class="form-grid" style="margin-bottom:16px;">
+              <div class="form-group">
+                <label>Tu DNI *</label>
+                <input type="text" name="dni" placeholder="Ej: 30123456" required>
+              </div>
+              <div class="form-group">
+                <label>Obra social</label>
+                <select name="obra_social">
+                  <option value="">Sin obra social (paga $10.000)</option>
+                  <option value="IPS Misiones">IPS Misiones (cubre 80%)</option>
+                  <option value="OSECAC">OSECAC (cubre 75%)</option>
+                  <option value="OSDE">OSDE (cubre 90%)</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Confirmar reserva</button>
+            <button type="button" class="btn btn-ghost" onclick="limpiarSeleccion()">Cancelar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div id="panel-vacio" class="card">
+      <div class="empty-state">
+        <div class="icon">📅</div>
+        <p>Elegí un médico y una fecha para ver los horarios disponibles.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  // Setear fecha mínima como hoy
+  const hoy = new Date().toISOString().split('T')[0];
+  document.getElementById('input-fecha').min = hoy;
+  if (!document.getElementById('input-fecha').value) {
+    document.getElementById('input-fecha').value = hoy;
+  }
+
+  let horaSeleccionada = null;
+
+  function buscarHorarios() {
+    const medico = document.getElementById('select-medico').value;
+    const fecha  = document.getElementById('input-fecha').value;
+
+    if (!medico || !fecha) return;
+
+    fetch(`{% url 'turnos:horarios_disponibles' %}?medico=${medico}&fecha=${fecha}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) {
+          mostrarVacio('No hay horarios disponibles para esa fecha.');
+          return;
+        }
+        renderHorarios(data, medico, fecha);
+      })
+      .catch(() => mostrarVacio('Error al cargar horarios.'));
+  }
+
+  function renderHorarios(data, medico, fecha) {
+    document.getElementById('panel-vacio').style.display   = 'none';
+    document.getElementById('panel-horarios').style.display = 'block';
+    document.getElementById('info-medico').style.display   = 'block';
+
+    document.getElementById('titulo-horarios').textContent   = `Dr/a. ${data.medico}`;
+    document.getElementById('subtitulo-horarios').textContent = `${data.especialidad} — ${fecha}`;
+    document.getElementById('txt-franja').textContent         = data.franja;
+
+    const grid = document.getElementById('grid-horarios');
+    grid.innerHTML = '';
+    limpiarSeleccion();
+
+    data.horarios.forEach(h => {
+      const btn = document.createElement('button');
+      btn.type      = 'button';
+      btn.textContent = h.hora;
+      btn.style.cssText = `
+        padding: 12px 8px;
+        border-radius: 8px;
+        font-size: 15px;
+        font-weight: 500;
+        font-family: 'DM Mono', monospace;
+        border: 1.5px solid;
+        cursor: ${h.disponible ? 'pointer' : 'not-allowed'};
+        transition: all .15s;
+        background: ${h.disponible ? 'var(--success-soft)' : 'var(--surface2)'};
+        color: ${h.disponible ? 'var(--success)' : 'var(--text-muted)'};
+        border-color: ${h.disponible ? '#a7f3d0' : 'var(--border)'};
+        opacity: ${h.disponible ? '1' : '0.5'};
+      `;
+
+      if (h.disponible) {
+        btn.addEventListener('click', () => seleccionarHora(btn, h.hora, medico, fecha, data.medico));
+      }
+
+      grid.appendChild(btn);
+    });
+
+    const hayDisponibles = data.horarios.some(h => h.disponible);
+    if (!hayDisponibles) {
+      const msg = document.createElement('p');
+      msg.style.cssText = 'grid-column:1/-1;color:var(--danger);font-size:14px;padding:12px 0;';
+      msg.textContent   = 'No hay horarios disponibles para este médico en esa fecha.';
+      grid.appendChild(msg);
+    }
+  }
+
+  function seleccionarHora(btn, hora, medicoIdx, fecha, medicoNombre) {
+    // Deseleccionar anterior
+    document.querySelectorAll('#grid-horarios button.seleccionado').forEach(b => {
+      b.classList.remove('seleccionado');
+      b.style.background   = 'var(--success-soft)';
+      b.style.color        = 'var(--success)';
+      b.style.borderColor  = '#a7f3d0';
+    });
+
+    // Marcar el seleccionado
+    btn.classList.add('seleccionado');
+    btn.style.background  = 'var(--primary)';
+    btn.style.color       = '#fff';
+    btn.style.borderColor = 'var(--primary)';
+
+    horaSeleccionada = hora;
+
+    // Mostrar panel de confirmación
+    document.getElementById('hid-medico').value = medicoIdx;
+    document.getElementById('hid-fecha').value  = fecha;
+    document.getElementById('hid-hora').value   = hora;
+    document.getElementById('txt-turno-sel').textContent = `${hora} hs con Dr/a. ${medicoNombre} el ${fecha}`;
+    document.getElementById('panel-confirmacion').style.display = 'block';
+  }
+
+  function limpiarSeleccion() {
+    horaSeleccionada = null;
+    document.getElementById('panel-confirmacion').style.display = 'none';
+    document.getElementById('hid-hora').value = '';
+  }
+
+  function mostrarVacio(msg) {
+    document.getElementById('panel-horarios').style.display = 'none';
+    document.getElementById('panel-vacio').style.display    = 'block';
+    document.getElementById('panel-vacio').querySelector('p').textContent = msg;
+  }
+</script>
+
+{% endblock %}
