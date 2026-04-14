@@ -12,6 +12,8 @@ Este repositorio contiene el desarrollo completo del **Sistema de Gestión de Tu
 El proyecto está organizado en carpetas temáticas. Esta guía explica qué hay en cada una y qué va a encontrar quien navegue el repositorio.
 
 ---
+## CLONAR REPO https://github.com/Lautaro-gonz/IS_2026_LAAB.git
+--
 
 ## Estructura del repositorio
 
