@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Pacientes{% endblock %}
+{% block page_title %}Pacientes registrados{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'accounts:panel_admin' %}" class="btn btn-ghost btn-sm">← Volver</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="stats-grid">
+  <div class="stat-card blue">
+    <div class="stat-value">{{ pacientes|length }}</div>
+    <div class="stat-label">Pacientes únicos</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Todos los pacientes</div>
+    <div class="card-subtitle">Pacientes que tienen al menos un turno registrado</div>
+  </div>
+
+  {% if pacientes %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>DNI</th>
+          <th>Obra social</th>
+          <th>Turnos</th>
+          <th>Último turno</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in pacientes %}
+        <tr>
+          <td><strong>{{ p.nombre }}</strong></td>
+          <td style="font-family:'DM Mono',monospace;font-size:13px;">{{ p.dni }}</td>
+          <td style="font-size:13px;color:var(--text-soft);">{{ p.obra_social }}</td>
+          <td>
+            <span class="badge badge-confirmado">{{ p.turnos }}</span>
+          </td>
+          <td style="font-size:13px;color:var(--text-soft);">{{ p.ultimo }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="icon">👥</div>
+      <p>No hay pacientes con turnos registrados todavía.</p>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

@@ -1,0 +1,209 @@
+{% extends 'base.html' %}
+{% block title %}Obras Sociales{% endblock %}
+{% block page_title %}Gestión de obras sociales{% endblock %}
+
+{% block topbar_actions %}
+  <button onclick="document.getElementById('modal-agregar').classList.add('open')" class="btn btn-primary btn-sm">+ Agregar obra social</button>
+  <a href="{% url 'accounts:panel_admin' %}" class="btn btn-ghost btn-sm">← Volver</a>
+{% endblock %}
+
+{% block content %}
+
+<div class="stats-grid">
+  <div class="stat-card blue">
+    <div class="stat-value">{{ stats.total }}</div>
+    <div class="stat-label">Total obras sociales</div>
+  </div>
+  <div class="stat-card green">
+    <div class="stat-value">{{ stats.activas }}</div>
+    <div class="stat-label">Activas</div>
+  </div>
+  <div class="stat-card amber">
+    <div class="stat-value">{{ stats.inactivas }}</div>
+    <div class="stat-label">Inactivas</div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Obras sociales registradas</div>
+    <div class="card-subtitle">Las inactivas no están disponibles para nuevos turnos</div>
+  </div>
+
+  {% if obras %}
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Cobertura</th>
+          <th>Estado</th>
+          <th>Motivo baja</th>
+          <th>Registrada</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for obra in obras %}
+        <tr>
+          <td><strong>{{ obra.nombre }}</strong></td>
+          <td>
+            <span style="font-family:'DM Mono',monospace;font-size:15px;font-weight:600;color:var(--primary);">
+              {{ obra.cobertura|floatformat:0 }}%
+            </span>
+          </td>
+          <td>
+            {% if obra.activa %}
+              <span class="badge badge-confirmado">Activa</span>
+            {% else %}
+              <span class="badge badge-cancelado">Inactiva</span>
+            {% endif %}
+          </td>
+          <td style="font-size:13px;color:var(--danger);">
+            {{ obra.motivo_baja|default:"—" }}
+          </td>
+          <td style="font-size:12px;color:var(--text-muted);">{{ obra.creada_en }}</td>
+          <td>
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <!-- Modificar cobertura -->
+              <button class="btn btn-ghost btn-sm"
+                onclick="abrirModificar('{{ obra.nombre }}', {{ obra.cobertura }})">
+                Cobertura
+              </button>
+
+              <!-- Activar / Desactivar -->
+              {% if obra.activa %}
+                <button class="btn btn-warning btn-sm"
+                  onclick="abrirDesactivar('{{ obra.nombre }}')">
+                  Desactivar
+                </button>
+              {% else %}
+                <form method="post" style="display:inline;">
+                  {% csrf_token %}
+                  <input type="hidden" name="accion" value="activar">
+                  <input type="hidden" name="nombre" value="{{ obra.nombre }}">
+                  <button type="submit" class="btn btn-success btn-sm">Activar</button>
+                </form>
+              {% endif %}
+
+              <!-- Eliminar -->
+              <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="eliminar">
+                <input type="hidden" name="nombre" value="{{ obra.nombre }}">
+                <button type="submit" class="btn btn-danger btn-sm"
+                  onclick="return confirm('Eliminar {{ obra.nombre }}? Esta acción no se puede deshacer.')">
+                  Eliminar
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="icon">🏥</div>
+      <p>No hay obras sociales registradas.</p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Modal agregar -->
+<div class="modal-overlay" id="modal-agregar">
+  <div class="modal">
+    <div class="modal-title">Agregar obra social</div>
+    <form method="post" style="display:flex;flex-direction:column;gap:14px;">
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="agregar">
+      <div class="form-group">
+        <label>Nombre *</label>
+        <input type="text" name="nombre" placeholder="Ej: IOMA" required>
+      </div>
+      <div class="form-group">
+        <label>Porcentaje de cobertura *</label>
+        <input type="number" name="cobertura" min="1" max="100" step="0.5"
+               placeholder="Ej: 80" required>
+        <span style="font-size:12px;color:var(--text-muted);">Entre 1 y 100%</span>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="btn btn-primary">Agregar</button>
+        <button type="button" class="btn btn-ghost"
+          onclick="document.getElementById('modal-agregar').classList.remove('open')">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal modificar cobertura -->
+<div class="modal-overlay" id="modal-modificar">
+  <div class="modal">
+    <div class="modal-title">Modificar cobertura</div>
+    <form method="post" style="display:flex;flex-direction:column;gap:14px;">
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="modificar_cobertura">
+      <input type="hidden" name="nombre" id="mod-nombre">
+      <div class="form-group">
+        <label id="mod-label">Obra social</label>
+        <input type="number" name="cobertura" id="mod-cobertura"
+               min="1" max="100" step="0.5" required>
+        <span style="font-size:12px;color:var(--text-muted);">Entre 1 y 100%</span>
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="btn btn-primary">Guardar</button>
+        <button type="button" class="btn btn-ghost"
+          onclick="document.getElementById('modal-modificar').classList.remove('open')">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal desactivar -->
+<div class="modal-overlay" id="modal-desactivar">
+  <div class="modal">
+    <div class="modal-title">Desactivar obra social</div>
+    <form method="post" style="display:flex;flex-direction:column;gap:14px;">
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="desactivar">
+      <input type="hidden" name="nombre" id="des-nombre">
+      <p style="font-size:14px;color:var(--text-soft);">
+        La obra social <strong id="des-nombre-txt"></strong> quedará inactiva
+        y no estará disponible para nuevos turnos.
+      </p>
+      <div class="form-group">
+        <label>Motivo de baja</label>
+        <input type="text" name="motivo" placeholder="Ej: Convenio vencido, en renegociación">
+      </div>
+      <div style="display:flex;gap:10px;">
+        <button type="submit" class="btn btn-danger">Desactivar</button>
+        <button type="button" class="btn btn-ghost"
+          onclick="document.getElementById('modal-desactivar').classList.remove('open')">
+          Cancelar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function abrirModificar(nombre, cobertura) {
+  document.getElementById('mod-nombre').value    = nombre;
+  document.getElementById('mod-cobertura').value = cobertura;
+  document.getElementById('mod-label').textContent = `Nueva cobertura para ${nombre}`;
+  document.getElementById('modal-modificar').classList.add('open');
+}
+
+function abrirDesactivar(nombre) {
+  document.getElementById('des-nombre').value      = nombre;
+  document.getElementById('des-nombre-txt').textContent = nombre;
+  document.getElementById('modal-desactivar').classList.add('open');
+}
+</script>
+
+{% endblock %}
