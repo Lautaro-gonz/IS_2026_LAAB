@@ -13,7 +13,7 @@ El proyecto está organizado en carpetas temáticas. Esta guía explica qué hay
 
 ---
 ## CLONAR REPO https://github.com/Lautaro-gonz/IS_2026_LAAB.git
---
+
 
 ## Estructura del repositorio
 
