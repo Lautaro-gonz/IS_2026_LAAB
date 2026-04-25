@@ -1,10 +1,5 @@
 # 🏥 Plan de Pruebas — Sistema de Turnos
 
-![Python](https://img.shields.io/badge/Python-3.x-3776AB?style=flat-square&logo=python&logoColor=white)
-![pytest](https://img.shields.io/badge/Pruebas-pytest-0A9EDC?style=flat-square&logo=pytest&logoColor=white)
-![Playwright](https://img.shields.io/badge/E2E-Playwright-2EAD33?style=flat-square&logo=playwright&logoColor=white)
-![Django](https://img.shields.io/badge/Backend-Django-092E20?style=flat-square&logo=django&logoColor=white)
-
 ---
 
 ## 📦 Componente elegido
