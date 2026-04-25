@@ -1,142 +1,234 @@
-Componente elegido (explicado más “a lo práctico”)
-Podemos tomar como componente el núcleo de turnos, o sea todo lo que hace que un turno funcione de verdad:
-Turno
-Estados (State)
-Notificaciones (Observer)
-Cálculo de costo
-y el SistemaTurnos como “memoria”
-Es un buen candidato porque:
-no es una sola clase (no es unidad)
-pero tampoco es todo el sistema (no incluye Django)
-concentra casi toda la lógica importante
+```md
+## Componente elegido
 
-Cómo lo probaría aislado (sin Django)
-La idea acá es probar “como si fuera un mini programa aparte”, sin web, sin login, nada.
-Solo Python + pytest.
+Se toma como componente el **núcleo de gestión de turnos**, que incluye:
 
-Cosas que probaría sí o sí
-1. Crear un turno
-Probaría algo básico primero:
-paciente con obra social
-médico válido
-fecha/hora
-Y ver:
-arranca en PENDIENTE
-el ID aumenta solo
-el costo está bien
-Ejemplo mental:
-si tiene OSDE → debería pagar $1000
+- `Turno`
+- Estados (patrón State)
+- Notificaciones (Observer)
+- `CalculoCosto`
+- `SistemaTurnos`
 
-2. Paciente sin obra social
-Esto es clave porque lo cambiaron en el diseño.
-Probar:
-paciente sin OS
-Esperar:
-paga todo ($10000)
+Es un buen componente porque:
+- No es una sola clase (no es una prueba unitaria)
+- Tampoco es todo el sistema (no incluye Django)
+- Contiene la lógica más importante del proyecto
 
-3. Estados (lo más importante)
-Acá es donde más se rompe todo normalmente.
-Probar cosas tipo:
-✔ válido:
-PENDIENTE → confirmar → OK
-CONFIRMADO → atender → OK
-❌ inválido:
-PENDIENTE → completar → error
-La idea:
-cada estado se comporte como dice la tabla
+---
 
-4. Reprogramar
-Caso típico:
-confirmo turno
-lo reprogramo
-Debería:
-volver a PENDIENTE
-(si esto falla, el State está mal aplicado)
+## Pruebas de componente (aislado)
 
-5. Notificaciones (Observer)
-Acá no hace falta mandar mails reales.
-Podés:
-mockear
-o capturar lo que imprime en consola
-Verificar:
-si tiene email → se usa EmailObservador
-si tiene teléfono → SMS
-siempre → Console
+La idea es probar este módulo sin Django, solo con Python.
 
-6. SistemaTurnos
-Algo más simple:
-agrego turnos
-busco por DNI
-Y ver que:
-devuelve lo correcto
+**Entorno:**
+- Python 3.x
+- Archivo `sistemadeturno.py`
+- `pytest`
 
-Pruebas de sistema (flujo completo)
-Acá ya pensamos como usuario real.
-Flujo más importante: crear y confirmar turno
+---
 
-Paso 1 — Login
-Secretaria entra
-Validar:
-entra bien
-no tira error
-redirige al panel
+### Casos principales
 
-Paso 2 — Crear turno
-Llena el formulario:
-paciente
-obra social
-médico
-fecha
-Validar:
-se crea el turno
-aparece como PENDIENTE
-el costo se calcula bien
+#### 1. Creación de turno
 
-Paso 3 — Confirmar
-Hace click en confirmar
-Validar:
-cambia a CONFIRMADO
-se ve en pantalla
-no rompe nada
+Se crea un turno con:
+- Paciente con obra social
+- Médico válido
+- Fecha y hora
 
-Paso 4 — Ver agenda
-Filtrar por médico/fecha
-Validar:
-el turno aparece
-estado correcto
+Se valida:
+- Estado inicial: `PENDIENTE`
+- ID autoincremental
+- Costo correcto
 
-Paso 5 — Paciente consulta
-Busca por DNI
-Validar:
-ve su turno
-datos correctos
+Ejemplo esperado:
+- OSDE → paga $1000
 
-Herramientas E2E (explicado simple)
-Cypress
-muy fácil de usar
-ideal frontend
-pero medio limitado
- bueno si fuera solo UI
+---
 
-Selenium
-el clásico de siempre
-funciona con todo
- pero:
-más pesado
-más viejo
-más lento
+#### 2. Paciente sin obra social
 
-Playwright
-el más moderno
-soporta varios navegadores
-maneja bien cosas async (importante con Django)
-balance entre potencia y simplicidad
+Se crea un turno con paciente sin OS.
 
-Elección
-Nos quedaríamos con Playwright
-Porque:
-funciona bien con Django
-no es tan pesado como Selenium
-más completo que Cypress
-sirve para crecer después (TP2, CI, etc.)
+Se valida:
+- Paga el total ($10000)
 
+---
+
+#### 3. Estados (transiciones)
+
+Se prueban transiciones válidas e inválidas.
+
+Válidas:
+- PENDIENTE → CONFIRMADO
+- CONFIRMADO → EN ATENCIÓN
+
+Inválidas:
+- PENDIENTE → COMPLETADO
+
+Se espera:
+- En inválidas → `ValueError`
+
+---
+
+#### 4. Reprogramación
+
+Caso:
+- Turno confirmado
+- Se reprograma
+
+Se valida:
+- Vuelve a `PENDIENTE`
+
+---
+
+#### 5. Observer (notificaciones)
+
+Se prueba que:
+
+- Si tiene email → se usa EmailObservador
+- Si tiene teléfono → SMSObservador
+- Siempre → ConsoleObservador
+
+Estrategia:
+- Mockear observadores o capturar salida por consola
+
+---
+
+#### 6. SistemaTurnos
+
+Se prueban operaciones básicas:
+
+- Agregar turnos
+- Buscar por DNI
+
+Se valida:
+- Retorna los turnos correctos
+
+---
+
+## Pruebas de sistema (end-to-end)
+
+Se prueba un flujo completo del sistema con interfaz web.
+
+### Flujo crítico: crear y confirmar turno
+
+---
+
+### Paso 1 — Login
+
+Usuario: secretaria
+
+Se valida:
+- Acceso correcto
+- Redirección al panel
+
+---
+
+### Paso 2 — Crear turno
+
+Se completa el formulario:
+
+- Paciente
+- DNI
+- Obra social
+- Médico
+- Fecha y hora
+
+Se valida:
+- Turno creado
+- Estado `PENDIENTE`
+- Costo correcto
+
+---
+
+### Paso 3 — Confirmar turno
+
+Acción:
+- Click en confirmar
+
+Se valida:
+- Estado cambia a `CONFIRMADO`
+- Se refleja en la interfaz
+
+---
+
+### Paso 4 — Ver agenda
+
+Se filtra por:
+- Médico
+- Fecha
+
+Se valida:
+- Turno visible
+- Estado correcto
+
+---
+
+### Paso 5 — Consulta del paciente
+
+Búsqueda por DNI
+
+Se valida:
+- El turno aparece
+- Datos correctos
+
+---
+
+## Herramientas End-to-End
+
+### Cypress
+
+Ventajas:
+- Fácil de usar
+- Rápido
+
+Desventajas:
+- Limitado fuera del navegador
+- Menos flexible
+
+---
+
+### Selenium
+
+Ventajas:
+- Muy conocido
+- Compatible con todo
+
+Desventajas:
+- Más lento
+- Configuración más compleja
+
+---
+
+### Playwright
+
+Ventajas:
+- Multinavegador
+- Moderno
+- Maneja bien asincronía
+
+Desventajas:
+- Curva de aprendizaje media
+
+---
+
+## Herramienta elegida
+
+Se elige **Playwright**.
+
+Motivos:
+- Funciona bien con Django
+- Más moderno que Selenium
+- Más completo que Cypress
+- Permite escalar a pruebas más complejas
+
+---
+
+## Resumen
+
+- Componente probado: núcleo de turnos
+- Pruebas de componente: lógica interna (estados, costos, observer)
+- Pruebas de sistema: flujo completo de usuario
+- Herramienta E2E: Playwright
+```
