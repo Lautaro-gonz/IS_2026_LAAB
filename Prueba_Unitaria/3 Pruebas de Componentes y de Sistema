@@ -1,252 +1,142 @@
-Podemos tomar como componente el **núcleo de turnos**, o sea todo lo que hace que un turno funcione de verdad:
-
-* `Turno`
-* Estados (State)
-* Notificaciones (Observer)
-* Cálculo de costo
-* y el `SistemaTurnos` como “memoria”
-
+Componente elegido (explicado más “a lo práctico”)
+Podemos tomar como componente el núcleo de turnos, o sea todo lo que hace que un turno funcione de verdad:
+Turno
+Estados (State)
+Notificaciones (Observer)
+Cálculo de costo
+y el SistemaTurnos como “memoria”
 Es un buen candidato porque:
+no es una sola clase (no es unidad)
+pero tampoco es todo el sistema (no incluye Django)
+concentra casi toda la lógica importante
 
-* no es una sola clase (no es unidad)
-* pero tampoco es todo el sistema (no incluye Django)
-* concentra casi toda la lógica importante
-
----
-
-## Cómo lo probaría aislado (sin Django)
-
+Cómo lo probaría aislado (sin Django)
 La idea acá es probar “como si fuera un mini programa aparte”, sin web, sin login, nada.
-
 Solo Python + pytest.
 
----
-
-### Cosas que probaría sí o sí
-
-#### 1. Crear un turno
-
+Cosas que probaría sí o sí
+1. Crear un turno
 Probaría algo básico primero:
-
-* paciente con obra social
-* médico válido
-* fecha/hora
-
+paciente con obra social
+médico válido
+fecha/hora
 Y ver:
-
-* arranca en `PENDIENTE`
-* el ID aumenta solo
-* el costo está bien
-
+arranca en PENDIENTE
+el ID aumenta solo
+el costo está bien
 Ejemplo mental:
+si tiene OSDE → debería pagar $1000
 
-> si tiene OSDE → debería pagar $1000
-
----
-
-#### 2. Paciente sin obra social
-
+2. Paciente sin obra social
 Esto es clave porque lo cambiaron en el diseño.
-
 Probar:
-
-* paciente sin OS
-
+paciente sin OS
 Esperar:
+paga todo ($10000)
 
-* paga todo ($10000)
-
----
-
-#### 3. Estados (lo más importante)
-
+3. Estados (lo más importante)
 Acá es donde más se rompe todo normalmente.
-
 Probar cosas tipo:
-
 ✔ válido:
-
-* PENDIENTE → confirmar → OK
-* CONFIRMADO → atender → OK
-
+PENDIENTE → confirmar → OK
+CONFIRMADO → atender → OK
 ❌ inválido:
-
-* PENDIENTE → completar → error
-
+PENDIENTE → completar → error
 La idea:
+cada estado se comporte como dice la tabla
 
-> cada estado se comporte como dice la tabla
-
----
-
-#### 4. Reprogramar
-
+4. Reprogramar
 Caso típico:
-
-* confirmo turno
-* lo reprogramo
-
+confirmo turno
+lo reprogramo
 Debería:
-
-* volver a `PENDIENTE`
-
+volver a PENDIENTE
 (si esto falla, el State está mal aplicado)
 
----
-
-#### 5. Notificaciones (Observer)
-
+5. Notificaciones (Observer)
 Acá no hace falta mandar mails reales.
-
 Podés:
-
-* mockear
-* o capturar lo que imprime en consola
-
+mockear
+o capturar lo que imprime en consola
 Verificar:
+si tiene email → se usa EmailObservador
+si tiene teléfono → SMS
+siempre → Console
 
-* si tiene email → se usa EmailObservador
-* si tiene teléfono → SMS
-* siempre → Console
-
----
-
-#### 6. SistemaTurnos
-
+6. SistemaTurnos
 Algo más simple:
-
-* agrego turnos
-* busco por DNI
-
+agrego turnos
+busco por DNI
 Y ver que:
+devuelve lo correcto
 
-* devuelve lo correcto
-
----
-
-## Pruebas de sistema (flujo completo)
-
+Pruebas de sistema (flujo completo)
 Acá ya pensamos como usuario real.
+Flujo más importante: crear y confirmar turno
 
-### Flujo más importante: crear y confirmar turno
-
----
-
-### Paso 1 — Login
-
+Paso 1 — Login
 Secretaria entra
-
 Validar:
+entra bien
+no tira error
+redirige al panel
 
-* entra bien
-* no tira error
-* redirige al panel
-
----
-
-### Paso 2 — Crear turno
-
+Paso 2 — Crear turno
 Llena el formulario:
-
-* paciente
-* obra social
-* médico
-* fecha
-
+paciente
+obra social
+médico
+fecha
 Validar:
+se crea el turno
+aparece como PENDIENTE
+el costo se calcula bien
 
-* se crea el turno
-* aparece como `PENDIENTE`
-* el costo se calcula bien
-
----
-
-### Paso 3 — Confirmar
-
+Paso 3 — Confirmar
 Hace click en confirmar
-
 Validar:
+cambia a CONFIRMADO
+se ve en pantalla
+no rompe nada
 
-* cambia a `CONFIRMADO`
-* se ve en pantalla
-* no rompe nada
-
----
-
-### Paso 4 — Ver agenda
-
+Paso 4 — Ver agenda
 Filtrar por médico/fecha
-
 Validar:
+el turno aparece
+estado correcto
 
-* el turno aparece
-* estado correcto
-
----
-
-### Paso 5 — Paciente consulta
-
+Paso 5 — Paciente consulta
 Busca por DNI
-
 Validar:
+ve su turno
+datos correctos
 
-* ve su turno
-* datos correctos
+Herramientas E2E (explicado simple)
+Cypress
+muy fácil de usar
+ideal frontend
+pero medio limitado
+ bueno si fuera solo UI
 
----
+Selenium
+el clásico de siempre
+funciona con todo
+ pero:
+más pesado
+más viejo
+más lento
 
-## Herramientas E2E (explicado simple)
+Playwright
+el más moderno
+soporta varios navegadores
+maneja bien cosas async (importante con Django)
+balance entre potencia y simplicidad
 
-### Cypress
-
-* muy fácil de usar
-* ideal frontend
-* pero medio limitado
-
-👉 bueno si fuera solo UI
-
----
-
-### Selenium
-
-* el clásico de siempre
-* funciona con todo
-
-👉 pero:
-
-* más pesado
-* más viejo
-* más lento
-
----
-
-### Playwright
-
-* el más moderno
-* soporta varios navegadores
-* maneja bien cosas async (importante con Django)
-
-👉 balance entre potencia y simplicidad
-
----
-
-## Elección
-
-Me quedaría con **Playwright**
-
+Elección
+Nos quedaríamos con Playwright
 Porque:
-
-* funciona bien con Django
-* no es tan pesado como Selenium
-* más completo que Cypress
-* sirve para crecer después (TP2, CI, etc.)
-
----
-
-## Idea final (resumen tipo apunte)
-
-* componente → motor de turnos (el “corazón”)
-* pruebas de componente → probar lógica pura (estados, costos, observer)
-* pruebas de sistema → flujo real (login → crear → confirmar)
-* herramienta → Playwright (mejor equilibrio)
+funciona bien con Django
+no es tan pesado como Selenium
+más completo que Cypress
+sirve para crecer después (TP2, CI, etc.)
 
