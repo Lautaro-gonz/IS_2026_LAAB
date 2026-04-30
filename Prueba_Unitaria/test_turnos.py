@@ -1,37 +1,60 @@
+# ══════════════════════════════════════════════
+# PRUEBAS UNITARIAS — Sistema de Turnos
+# Dev Lead: Angelina Alonso
+# ══════════════════════════════════════════════
+
 import pytest
 import sys
 import os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'turnos_v2 (6)', 'turnos_v2'))
 
+# Le decimos a Python dónde está el código del sistema
+sys.path.insert(0, os.path.join(
+    os.path.dirname(__file__), '..',
+    'turnos_v2 (6)', 'turnos_v2'
+))
+
+# Importamos las clases que vamos a probar
 from turnos.logica import (
     Paciente, Medico, ObraSocial, CalculoCosto,
     TurnoFactory, TurnoRepository, Especialidad
 )
 
-# PRUEBA 1 — Sin obra social paga $10.000
+# ══════════════════════════════════════════════
+# FUNCIÓN 1: CalculoCosto.calcular()
+# Verifica que el cálculo de costos sea correcto
+# según la obra social del paciente
+# ══════════════════════════════════════════════
+
 def test_costo_sin_obra_social():
+    # Sin obra social el paciente paga $10.000 completos
     paciente = Paciente("Ana Lopez", "12345678")
     resultado = CalculoCosto.calcular(paciente)
     assert resultado["paga_paciente"] == 10000.0
 
-# PRUEBA 2 — Con OSDE paga $1.000
 def test_costo_con_osde():
-    os = ObraSocial("OSDE")
-    paciente = Paciente("Juan Perez", "87654321", obra_social=os)
+    # Con OSDE (90%) el paciente paga $1.000
+    os_obj = ObraSocial("OSDE")
+    paciente = Paciente("Juan Perez", "87654321", obra_social=os_obj)
     resultado = CalculoCosto.calcular(paciente)
     assert resultado["paga_paciente"] == 1000.0
     assert resultado["cubre_os"] == 9000.0
 
-# PRUEBA 3 — Con IPS Misiones paga $2.000
 def test_costo_con_ips_misiones():
-    os = ObraSocial("IPS Misiones")
-    paciente = Paciente("Maria Garcia", "11223344", obra_social=os)
+    # Con IPS Misiones (80%) el paciente paga $2.000
+    os_obj = ObraSocial("IPS Misiones")
+    paciente = Paciente("Maria Garcia", "11223344", obra_social=os_obj)
     resultado = CalculoCosto.calcular(paciente)
     assert resultado["paga_paciente"] == 2000.0
     assert resultado["cubre_os"] == 8000.0
 
-# PRUEBA 4 — Agregar y buscar turno por ID
+# ══════════════════════════════════════════════
+# FUNCIÓN 2: TurnoRepository
+# Verifica que los turnos se guarden
+# y busquen correctamente
+# ══════════════════════════════════════════════
+
 def test_agregar_y_buscar_turno():
+    # Un turno guardado se puede encontrar por su ID
     repo = TurnoRepository()
     paciente = Paciente("Ana Lopez", "12345678")
     medico = Medico("Garcia", Especialidad.CARDIOLOGIA, "MP-1001")
@@ -41,14 +64,14 @@ def test_agregar_y_buscar_turno():
     assert resultado is not None
     assert resultado.paciente.dni == "12345678"
 
-# PRUEBA 5 — Buscar turno que no existe devuelve None
 def test_buscar_turno_inexistente():
+    # Buscar un ID que no existe devuelve None sin romperse
     repo = TurnoRepository()
     resultado = repo.buscar_por_id(9999)
     assert resultado is None
 
-# PRUEBA 6 — Buscar todos los turnos de un paciente por DNI
 def test_buscar_turnos_por_paciente():
+    # Se encuentran todos los turnos de un paciente por DNI
     repo = TurnoRepository()
     paciente = Paciente("Ana Lopez", "12345678")
     medico = Medico("Garcia", Especialidad.CARDIOLOGIA, "MP-1001")
