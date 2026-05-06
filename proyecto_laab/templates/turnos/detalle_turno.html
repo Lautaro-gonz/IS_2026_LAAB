@@ -1,0 +1,89 @@
+{% extends 'base.html' %}
+{% block title %}Turno #{{ turno.id }} — laab{% endblock %}
+{% block page_title %}Turno #{{ turno.id }}{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{% url 'turnos:panel_secretaria' %}" class="btn btn-ghost btn-sm">
+    <i class="fa-solid fa-arrow-left"></i> Volver a la agenda
+  </a>
+{% endblock %}
+
+{% block content %}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:860px;">
+
+  <!-- Paciente -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><i class="fa-solid fa-user" style="margin-right:8px;color:var(--primary)"></i>Datos del paciente</div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">Nombre completo</div>
+      <div class="detail-value">{{ turno.paciente }}</div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">DNI</div>
+      <div class="detail-value" style="font-family:'JetBrains Mono',monospace;">{{ turno.dni }}</div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">Cobertura</div>
+      <div class="detail-value">{{ turno.costo.detalle }}</div>
+    </div>
+  </div>
+
+  <!-- Turno -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><i class="fa-solid fa-calendar-check" style="margin-right:8px;color:var(--primary)"></i>Datos del turno</div>
+      <span class="badge badge-{{ turno.estado }}">{{ turno.estado }}</span>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">Médico</div>
+      <div class="detail-value">Dr/a. {{ turno.medico }}</div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">Especialidad</div>
+      <div class="detail-value">{{ turno.especialidad }}</div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">Fecha</div>
+      <div class="detail-value">{{ turno.fecha }}</div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">Hora</div>
+      <div class="detail-value" style="font-family:'JetBrains Mono',monospace;color:var(--primary);">{{ turno.hora }}</div>
+    </div>
+    <div class="detail-row">
+      <div class="detail-label">Duración estimada</div>
+      <div class="detail-value">{{ turno.duracion }} minutos</div>
+    </div>
+    {% if turno.motivo_cancelacion %}
+    <div class="detail-row">
+      <div class="detail-label">Motivo de cancelación</div>
+      <div class="detail-value" style="color:var(--danger);">{{ turno.motivo_cancelacion }}</div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Costo -->
+  <div class="card" style="grid-column:1/-1;">
+    <div class="card-header">
+      <div class="card-title"><i class="fa-solid fa-receipt" style="margin-right:8px;color:var(--primary)"></i>Resumen de costos</div>
+    </div>
+    <div class="cost-summary">
+      <div class="cost-item">
+        <div class="cost-amount" style="color:var(--text);">${{ turno.costo.costo_total|floatformat:0 }}</div>
+        <div class="cost-desc">Total consulta</div>
+      </div>
+      <div class="cost-item">
+        <div class="cost-amount" style="color:var(--success);">${{ turno.costo.cubre_os|floatformat:0 }}</div>
+        <div class="cost-desc">Cubre obra social</div>
+      </div>
+      <div class="cost-item" style="background:var(--primary-soft);">
+        <div class="cost-amount" style="color:var(--primary);">${{ turno.costo.paga_paciente|floatformat:0 }}</div>
+        <div class="cost-desc">Paga el paciente</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
