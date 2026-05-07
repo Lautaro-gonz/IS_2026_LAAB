@@ -8,18 +8,17 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-    - name: Configurar Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.12'
+      - name: Configurar Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
 
-    - name: Instalar dependencias
-      run: |
-        pip install pytest django werkzeug
+      - name: Instalar dependencias
+        run: pip install pytest django werkzeug
 
-    - name: Correr tests
-    run: |
+      - name: Correr tests
+        run: |
           cd proyecto_laab
           python -m pytest ../Prueba_Unitaria/test_turnos.py -v
