@@ -20,4 +20,6 @@ jobs:
         pip install pytest django werkzeug
 
     - name: Correr tests
-      run: pytest -v
+      run: |
+  cd proyecto_laab
+  python -m pytest ../Prueba_Unitaria/test_turnos.py -v
