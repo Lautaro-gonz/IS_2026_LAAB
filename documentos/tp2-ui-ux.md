@@ -8,28 +8,16 @@
 
 ## Índice
 
-- [A1 — Prototipo Figma](#a1--prototipo-figma)
-- [A2 — Análisis de usuario, tarea y contexto](#a2--análisis-de-usuario-tarea-y-contexto)
-- [A3 — Auditoría de usabilidad ISO 9241-11](#a3--auditoría-de-usabilidad-iso-9241-11)
+- [A1 — Análisis de usuario, tarea y contexto](#a2--análisis-de-usuario-tarea-y-contexto)
+- [A2 — Auditoría de usabilidad ISO 9241-11](#a3--auditoría-de-usabilidad-iso-9241-11)
 - [Alineación con ISO 13407](#alineación-con-iso-13407)
 
 ---
 
-## A1 — Prototipo Figma
-
-> 🔗 **Link al prototipo:** _[insertar link público de Figma aquí]_
-
-**Flujo cubierto:** Calendario → Solicitud de turno → Comprobante
-
-| Pantalla | Descripción |
-|---|---|
-| Panel principal | Vista de agenda del médico con turnos del día |
-| Formulario de turno | Selección de médico, especialidad, fecha y datos del paciente |
-| Comprobante | Confirmación del turno creado con estado PENDIENTE |
 
 ---
 
-## A2 — Análisis de usuario, tarea y contexto
+## A1 — Análisis de usuario, tarea y contexto
 
 ### Usuarios objetivo
 
@@ -47,7 +35,7 @@ Una restricción importante del contexto es que la recepcionista puede estar ate
 
 ---
 
-## A3 — Auditoría de usabilidad ISO 9241-11
+## A2 — Auditoría de usabilidad ISO 9241-11
 
 La norma **ISO 9241-11** define la usabilidad como la medida en que un sistema puede ser usado por usuarios específicos para alcanzar objetivos específicos con **eficacia**, **eficiencia** y **satisfacción** en un contexto de uso determinado. Para esta auditoría se seleccionaron los criterios de **eficacia** y **eficiencia**.
 
