@@ -26,6 +26,17 @@ Sistema de turnos médicos que permite a la recepcionista crear, confirmar, canc
 
 ---
 
+1. La verificación busca confirmar que el software fue desarrollado según los requisitos definidos; la validación intenta comprobar si el sistema realmente satisface las necesidades del usuario. En nuestro proyecto, una verificación sería revisar que el módulo de turnos siga las reglas planteadas; una validación sería mostrarlo al cliente y recibir su aprobación.
+
+2. Para el próximo sprint incluiríamos dos actividades concretas: ejecutar pruebas unitarias sobre las nuevas funciones y realizar una revisión grupal del código antes de integrar cambios. Además, haríamos una demostración breve con el Product Owner para validar el funcionamiento esperado.
+
+3. La inspección de código consiste en analizar el código de manera manual; en cambio, una prueba automática ejecuta el sistema para detectar fallos durante su funcionamiento. La inspección conviene para hallar problemas de diseño o lógica; las pruebas automáticas resultan más útiles para verificar comportamientos repetitivos.
+
+4. Pylint permite detectar errores sin ejecutar el programa; por ejemplo, variables no utilizadas, problemas de sintaxis o funciones mal estructuradas. Este tipo de análisis ayuda a mantener un código más claro y ordenado.
+
+5. Los métodos formales son imprescindibles en sistemas críticos; por ejemplo, software médico, aeronáutico o bancario, donde un error podría causar consecuencias graves. No se aplican siempre porque requieren mucho tiempo, conocimientos especializados y un proceso bastante complejo.
+
+6. En Scrum o XP, el Product Owner participa en la Sprint Review para validar que el incremento desarrollado cumpla con lo esperado por el cliente. Las pruebas automatizadas se relacionan con este proceso porque permiten llegar a la revisión con funciones ya comprobadas y más estables.
 
 ---
 
