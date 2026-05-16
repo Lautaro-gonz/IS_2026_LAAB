@@ -26,6 +26,18 @@ Sistema de turnos médicos que permite a la recepcionista crear, confirmar, canc
 
 ---
 
+1. Verificación vs Validación: Con sus palabras, ¿cuál es la diferencia clave? Pongan un ejemplo de cada una en su proyecto.
+
+2. Planificación de V&V: Si tuvieran que planificar la verificación y validación para el próximo sprint (1 semana), ¿qué dos actividades concretas incluirían?
+
+3. Inspecciones de software: ¿En qué se diferencia una inspección de código de una prueba automática? ¿Cuándo conviene más una que la otra?
+
+4. Análisis estático automatizado: Nombre una herramienta que conozcan (SonarQube, ESLint, Pylint, etc.) y digan qué tipo de error podría encontrar en su código sin ejecutarlo.
+
+5. Métodos formales de verificación: ¿Para qué tipo de sistemas son imprescindibles? ¿Por qué no se usan siempre?
+
+6. Reuniones de validación en Scrum/XP: ¿Qué rol cumple el Product Owner en una Sprint Review? ¿Cómo se relaciona con las pruebas automatizadas?
+RTA:
 1. La verificación busca confirmar que el software fue desarrollado según los requisitos definidos; la validación intenta comprobar si el sistema realmente satisface las necesidades del usuario. En nuestro proyecto, una verificación sería revisar que el módulo de turnos siga las reglas planteadas; una validación sería mostrarlo al cliente y recibir su aprobación.
 
 2. Para el próximo sprint incluiríamos dos actividades concretas: ejecutar pruebas unitarias sobre las nuevas funciones y realizar una revisión grupal del código antes de integrar cambios. Además, haríamos una demostración breve con el Product Owner para validar el funcionamiento esperado.
