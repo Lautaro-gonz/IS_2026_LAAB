@@ -52,6 +52,97 @@ RTA:
 
 ---
 
+# Mini Plan de Verificación y Validación (V&V)
+ 
+> Borrador de trabajo — Sistema de Gestión de Turnos · Clínica LAAB · 2026
+ 
+---
+ 
+## Sección 1 — Verificación vs. Validación
+ 
+**Verificación (algo que ya hacemos):**
+Las pruebas unitarias implementadas en `tests/unit/test_logica.py` verifican que las clases del dominio se comportan exactamente como fueron diseñadas. Específicamente, el caso que verifica que `TurnoFactory` lanza `ValueError` cuando se intenta crear un turno con fecha pasada es una verificación: estamos comprobando que el código hace lo que dice que hace según la especificación técnica, sin necesidad de levantar el servidor ni conectar la base de datos.
+ 
+**Validación (algo que planeamos hacer con el Product Owner):**
+Planeamos hacer una sesión corta con el Product Owner donde la secretaria simulada recorra el flujo completo de solicitud de turno usando el sistema real, no el prototipo. La pregunta que queremos responder es si el sistema resuelve el problema original: ¿puede la clínica dejar de usar el Excel y el teléfono para gestionar turnos? Eso es validación — no si el código es correcto, sino si el sistema sirve para lo que fue pedido.
+ 
+---
+ 
+## Sección 2 — Planificación de V&V para los próximos 2 sprints
+ 
+| Sprint | Actividad de V&V | Técnica | Responsable | Herramienta |
+|--------|-----------------|---------|-------------|-------------|
+| Actual | Inspección de `sistemadeturno.py`: verificar que los métodos de transición del patrón State no tienen lógica condicional mezclada | Inspección de código / revisión manual | QA Lead | Pylint + checklist manual |
+| Próximo | Sesión de validación con el Product Owner: secretaria simulada completa el flujo de solicitud, confirmación y cancelación en el sistema real | Prueba de aceptación / demo con usuario | Scrum Master + UX Lead | Sistema corriendo en local + guión de tareas |
+ 
+---
+ 
+## Sección 3 — Inspección y análisis estático
+ 
+**a) ¿Qué archivo inspeccionaríamos primero y por qué?**
+ 
+`sistemadeturno.py`. Es el núcleo de toda la lógica del sistema: ahí están las clases del dominio, los patrones State y Observer, y todas las validaciones de negocio. Es también el archivo que más cambió a lo largo del TP1, lo que lo hace más propenso a tener código duplicado o decisiones contradictorias. Un segundo candidato sería `tests/unit/test_logica.py` — un test mal escrito da falsa seguridad, y eso es peor que no tener test.
+ 
+**b) Herramienta elegida y primera regla a aplicar:**
+ 
+Elegiríamos **Pylint**. La primera regla que aplicaríamos es la detección de complejidad ciclomática alta (`C901`). Esta regla marca funciones con demasiados caminos de ejecución posibles. Si el patrón State está bien implementado, ningún método de la clase `Turno` debería tener complejidad alta — si Pylint reporta lo contrario, significa que hay lógica condicional que debería estar en las clases de estado y no llegó a migrarse.
+ 
+---
+ 
+## Sección 4 — Método formal conceptual
+ 
+**a) Invariante para la clase `Turno`:**
+ 
+En cualquier momento de la vida de un objeto `Turno`, su atributo `_estado` es siempre una instancia de alguna subclase concreta de `EstadoTurno` (`EstadoPendiente`, `EstadoConfirmado`, `EstadoEnAtencion`, `EstadoCompletado` o `EstadoCancelado`). Nunca puede ser `None`, nunca puede ser un string, y nunca puede ser la clase abstracta `EstadoTurno` directamente.
+ 
+Dicho de otra manera: un turno siempre tiene un estado definido. No existe un turno "sin estado".
+ 
+**b) Cómo lo probaríamos con una prueba unitaria:**
+ 
+Verificaríamos el invariante en tres momentos distintos del ciclo de vida del turno:
+ 
+```python
+def test_invariante_estado_turno(self):
+    turno = TurnoFactory.crear(paciente, medico, fecha_valida, "09:00")
+ 
+    # Al crear — debe ser EstadoPendiente
+    self.assertIsInstance(turno._estado, EstadoPendiente)
+    self.assertIsInstance(turno._estado, EstadoTurno)
+    self.assertIsNotNone(turno._estado)
+ 
+    # Después de confirmar — debe ser EstadoConfirmado
+    turno.confirmar()
+    self.assertIsInstance(turno._estado, EstadoConfirmado)
+    self.assertIsInstance(turno._estado, EstadoTurno)
+ 
+    # Después de completar — debe ser EstadoCompletado
+    turno.atender()
+    turno.completar()
+    self.assertIsInstance(turno._estado, EstadoCompletado)
+    self.assertIsInstance(turno._estado, EstadoTurno)
+```
+ 
+Si alguna transición deja el estado en un valor inválido, la prueba lo detecta inmediatamente.
+ 
+---
+ 
+## Sección 5 — Simulación de reunión de validación con el Product Owner
+ 
+Estas son las dos preguntas que le haríamos al Product Owner en la próxima Sprint Review. No son preguntas técnicas — son preguntas sobre si el sistema resuelve el problema real de la clínica.
+ 
+**Pregunta 1:**
+> Si la secretaria tuviera que usar este sistema mañana para gestionar la agenda del día, ¿hay alguna situación habitual de la clínica que el sistema todavía no pueda manejar?
+ 
+*Por qué la preguntamos:* queremos saber si hay casos de uso reales que no consideramos. Puede haber turnos de urgencia, médicos que atienden en varios consultorios, o pacientes con dos turnos el mismo día. Si el sistema no los contempla, es mejor saberlo ahora que en el integrador final.
+ 
+**Pregunta 2:**
+> Mirando el panel de secretaria, ¿la información que aparece en la agenda es suficiente para trabajar sin tener que buscar datos en otro lado, como el Excel que se usaba antes?
+ 
+*Por qué la preguntamos:* el éxito del sistema no es que funcione técnicamente, sino que la clínica pueda abandonar el proceso manual. Si la secretaria todavía necesita el Excel para completar información que el sistema no muestra, el reemplazo no es real.
+ 
+---
+
+
 ## Enlaces
 
 - 
