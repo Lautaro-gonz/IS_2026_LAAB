@@ -1,86 +1,154 @@
 {% extends 'base.html' %}
 {% block title %}Turno #{{ turno.id }} — laab{% endblock %}
-{% block page_title %}Turno #{{ turno.id }}{% endblock %}
+{% block page_title %}Detalle del turno{% endblock %}
 
 {% block topbar_actions %}
+  <span class="badge badge-{{ turno.estado }}" style="font-size:12.5px;padding:5px 14px;">{{ turno.estado }}</span>
   <a href="{% url 'turnos:panel_secretaria' %}" class="btn btn-ghost btn-sm">
     <i class="fa-solid fa-arrow-left"></i> Volver a la agenda
   </a>
 {% endblock %}
 
 {% block content %}
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:860px;">
+<div style="max-width:920px;">
 
-  <!-- Paciente -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title"><i class="fa-solid fa-user" style="margin-right:8px;color:var(--primary)"></i>Datos del paciente</div>
+  <!-- Hero banner -->
+  <div style="background:var(--primary-grad);border-radius:var(--radius-xl);padding:28px 32px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;gap:20px;box-shadow:0 8px 30px rgba(26,86,219,.25);">
+    <div style="display:flex;align-items:center;gap:20px;min-width:0;">
+      <div style="width:64px;height:64px;border-radius:18px;background:rgba(255,255,255,.18);border:2px solid rgba(255,255,255,.35);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800;color:#fff;flex-shrink:0;letter-spacing:-1px;">
+        {{ turno.paciente|slice:":2"|upper }}
+      </div>
+      <div style="min-width:0;">
+        <div style="font-size:21px;font-weight:700;color:#fff;line-height:1.1;">{{ turno.paciente }}</div>
+        <div style="font-size:13.5px;color:rgba(255,255,255,.75);margin-top:6px;display:flex;gap:14px;flex-wrap:wrap;">
+          <span><i class="fa-solid fa-fingerprint" style="margin-right:4px;opacity:.8"></i>DNI {{ turno.dni }}</span>
+          {% if turno.obra_social %}<span><i class="fa-solid fa-shield-halved" style="margin-right:4px;opacity:.8"></i>{{ turno.obra_social }}</span>{% endif %}
+        </div>
+      </div>
     </div>
-    <div class="detail-row">
-      <div class="detail-label">Nombre completo</div>
-      <div class="detail-value">{{ turno.paciente }}</div>
-    </div>
-    <div class="detail-row">
-      <div class="detail-label">DNI</div>
-      <div class="detail-value" style="font-family:'JetBrains Mono',monospace;">{{ turno.dni }}</div>
-    </div>
-    <div class="detail-row">
-      <div class="detail-label">Cobertura</div>
-      <div class="detail-value">{{ turno.costo.detalle }}</div>
+    <div style="text-align:right;flex-shrink:0;">
+      <div style="font-size:32px;font-weight:800;color:#fff;font-family:'JetBrains Mono',monospace;line-height:1;">{{ turno.hora }}</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.72);margin-top:6px;">{{ turno.fecha }}</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.55);margin-top:3px;">Turno #{{ turno.id }}</div>
     </div>
   </div>
 
-  <!-- Turno -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-title"><i class="fa-solid fa-calendar-check" style="margin-right:8px;color:var(--primary)"></i>Datos del turno</div>
-      <span class="badge badge-{{ turno.estado }}">{{ turno.estado }}</span>
+  <!-- Two column: turno + paciente -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;">
+
+    <!-- Datos del turno -->
+    <div class="card">
+      <div class="card-header" style="margin-bottom:16px;">
+        <div class="card-title">
+          <i class="fa-solid fa-calendar-check" style="margin-right:8px;color:var(--primary)"></i>Datos del turno
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label"><i class="fa-solid fa-user-doctor" style="margin-right:5px;color:var(--teal);opacity:.8"></i>Médico tratante</div>
+        <div class="detail-value" style="font-size:15px;">Dr/a. {{ turno.medico }}</div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label"><i class="fa-solid fa-stethoscope" style="margin-right:5px;color:var(--teal);opacity:.8"></i>Especialidad</div>
+        <div class="detail-value">
+          <span style="background:var(--teal-soft);color:#155e75;border:1px solid #a5f3fc;padding:3px 10px;border-radius:6px;font-size:13px;font-weight:600;">
+            {{ turno.especialidad }}
+          </span>
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label"><i class="fa-solid fa-clock" style="margin-right:5px;color:var(--primary);opacity:.8"></i>Duración estimada</div>
+        <div class="detail-value">{{ turno.duracion }} minutos</div>
+      </div>
+      {% if turno.motivo_cancelacion %}
+      <div class="detail-row" style="background:rgba(220,38,38,.04);margin:0 -4px;padding:14px 4px;border-radius:var(--radius);">
+        <div class="detail-label" style="color:var(--danger);"><i class="fa-solid fa-triangle-exclamation" style="margin-right:5px;"></i>Motivo de cancelación</div>
+        <div class="detail-value" style="color:var(--danger);">{{ turno.motivo_cancelacion }}</div>
+      </div>
+      {% endif %}
     </div>
-    <div class="detail-row">
-      <div class="detail-label">Médico</div>
-      <div class="detail-value">Dr/a. {{ turno.medico }}</div>
+
+    <!-- Datos del paciente -->
+    <div class="card">
+      <div class="card-header" style="margin-bottom:16px;">
+        <div class="card-title">
+          <i class="fa-solid fa-id-card" style="margin-right:8px;color:var(--purple)"></i>Datos del paciente
+        </div>
+      </div>
+      <div class="detail-row">
+        <div class="detail-label"><i class="fa-solid fa-fingerprint" style="margin-right:5px;color:var(--text-muted);"></i>DNI</div>
+        <div class="detail-value" style="font-family:'JetBrains Mono',monospace;font-size:15px;letter-spacing:.03em;">{{ turno.dni }}</div>
+      </div>
+      {% if turno.telefono %}
+      <div class="detail-row">
+        <div class="detail-label"><i class="fa-solid fa-phone" style="margin-right:5px;color:var(--text-muted);"></i>Teléfono</div>
+        <div class="detail-value">{{ turno.telefono }}</div>
+      </div>
+      {% endif %}
+      {% if turno.email %}
+      <div class="detail-row">
+        <div class="detail-label"><i class="fa-solid fa-envelope" style="margin-right:5px;color:var(--text-muted);"></i>Email</div>
+        <div class="detail-value" style="font-size:13.5px;">{{ turno.email }}</div>
+      </div>
+      {% endif %}
+      <div class="detail-row">
+        <div class="detail-label"><i class="fa-solid fa-shield-halved" style="margin-right:5px;color:var(--success);"></i>Cobertura</div>
+        <div class="detail-value">{{ turno.costo.detalle }}</div>
+      </div>
     </div>
-    <div class="detail-row">
-      <div class="detail-label">Especialidad</div>
-      <div class="detail-value">{{ turno.especialidad }}</div>
+
+  </div>
+
+  <!-- Motivo consulta / Notas médico -->
+  {% if turno.motivo_consulta or turno.notas_medico %}
+  <div style="display:grid;grid-template-columns:{% if turno.motivo_consulta and turno.notas_medico %}1fr 1fr{% else %}1fr{% endif %};gap:18px;margin-bottom:18px;">
+    {% if turno.motivo_consulta %}
+    <div class="card" style="border-left:4px solid var(--warning);padding-left:20px;">
+      <div class="card-title" style="margin-bottom:12px;color:var(--warning);">
+        <i class="fa-solid fa-clipboard-question" style="margin-right:8px;"></i>Motivo de consulta
+      </div>
+      <p style="font-size:14px;color:var(--text-soft);line-height:1.75;">{{ turno.motivo_consulta }}</p>
     </div>
-    <div class="detail-row">
-      <div class="detail-label">Fecha</div>
-      <div class="detail-value">{{ turno.fecha }}</div>
-    </div>
-    <div class="detail-row">
-      <div class="detail-label">Hora</div>
-      <div class="detail-value" style="font-family:'JetBrains Mono',monospace;color:var(--primary);">{{ turno.hora }}</div>
-    </div>
-    <div class="detail-row">
-      <div class="detail-label">Duración estimada</div>
-      <div class="detail-value">{{ turno.duracion }} minutos</div>
-    </div>
-    {% if turno.motivo_cancelacion %}
-    <div class="detail-row">
-      <div class="detail-label">Motivo de cancelación</div>
-      <div class="detail-value" style="color:var(--danger);">{{ turno.motivo_cancelacion }}</div>
+    {% endif %}
+    {% if turno.notas_medico %}
+    <div class="card" style="border-left:4px solid var(--teal);padding-left:20px;">
+      <div class="card-title" style="margin-bottom:12px;color:var(--teal);">
+        <i class="fa-solid fa-notes-medical" style="margin-right:8px;"></i>Notas del médico
+      </div>
+      <p style="font-size:14px;color:var(--text-soft);line-height:1.75;">{{ turno.notas_medico }}</p>
     </div>
     {% endif %}
   </div>
+  {% endif %}
 
-  <!-- Costo -->
-  <div class="card" style="grid-column:1/-1;">
-    <div class="card-header">
-      <div class="card-title"><i class="fa-solid fa-receipt" style="margin-right:8px;color:var(--primary)"></i>Resumen de costos</div>
+  <!-- Resumen de costos -->
+  <div class="card">
+    <div class="card-header" style="margin-bottom:20px;">
+      <div class="card-title">
+        <i class="fa-solid fa-receipt" style="margin-right:8px;color:var(--success)"></i>Resumen de costos
+      </div>
+      {% if turno.costo_anterior %}
+      <span class="badge" style="background:var(--warning-soft);color:#92400e;border:1px solid #fde68a;">
+        <i class="fa-solid fa-arrow-trend-up"></i> Precio ajustado por inflación
+      </span>
+      {% endif %}
     </div>
     <div class="cost-summary">
       <div class="cost-item">
         <div class="cost-amount" style="color:var(--text);">${{ turno.costo.costo_total|floatformat:0 }}</div>
         <div class="cost-desc">Total consulta</div>
+        {% if turno.costo_anterior %}
+        <div style="font-size:11.5px;color:var(--text-muted);margin-top:8px;">
+          Precio anterior: <s style="opacity:.7">${{ turno.costo_anterior|floatformat:0 }}</s>
+        </div>
+        {% endif %}
       </div>
       <div class="cost-item">
         <div class="cost-amount" style="color:var(--success);">${{ turno.costo.cubre_os|floatformat:0 }}</div>
         <div class="cost-desc">Cubre obra social</div>
       </div>
-      <div class="cost-item" style="background:var(--primary-soft);">
-        <div class="cost-amount" style="color:var(--primary);">${{ turno.costo.paga_paciente|floatformat:0 }}</div>
-        <div class="cost-desc">Paga el paciente</div>
+      <div class="cost-item" style="background:var(--primary-soft);border-color:rgba(26,86,219,.2);">
+        <div class="cost-amount" style="color:var(--primary);font-size:28px;">${{ turno.costo.paga_paciente|floatformat:0 }}</div>
+        <div class="cost-desc" style="color:var(--primary);font-weight:700;">Paga el paciente</div>
       </div>
     </div>
   </div>

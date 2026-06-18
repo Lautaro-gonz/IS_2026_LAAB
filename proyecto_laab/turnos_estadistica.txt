@@ -1,0 +1,5 @@
+fecha	especialidad	estado	duracion_min	costo_total	cubre_os	paga_paciente	obra_social	dias_anticipacion	franja_horaria	porcentaje_cobertura	dia_semana	mes	notif_enviadas	motivo_consulta
+2026-05-07	Traumatología	COMPLETADO	40	10000.0	8000.0	2000.0	IPS Misiones	0	mañana	80.0	Jueves	Mayo	0	
+2026-05-09	Cardiología	CONFIRMADO	30	10000.0	8000.0	2000.0	IPS Misiones	0	mañana	80.0	Sábado	Mayo	0	
+2026-05-22	Clinica Medica	CONFIRMADO	20	10000.0	0.0	10000.0	Sin OS	16	mañana	0.0	Viernes	Mayo	0	
+2026-05-22	Clinica Medica	PENDIENTE	20	10000.0	8000.0	2000.0	IPS Misiones	13	mañana	80.0	Viernes	Mayo	0	

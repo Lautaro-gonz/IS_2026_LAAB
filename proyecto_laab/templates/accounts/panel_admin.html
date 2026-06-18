@@ -3,43 +3,54 @@
 {% block page_title %}Panel de administración{% endblock %}
 
 {% block topbar_actions %}
-  <span style="font-size:13px;color:var(--text-muted);">{{ hoy_str }}</span>
-  <button onclick="document.getElementById('modal-crear').classList.add('open')" class="btn btn-primary btn-sm">
-    <i class="fa-solid fa-user-plus"></i> Nuevo usuario
-  </button>
+  <span style="font-size:12.5px;color:var(--text-muted);font-weight:500;">{{ hoy_str }}</span>
 {% endblock %}
 
 {% block content %}
+
+<!-- Último turno registrado -->
+{% if ultimo_turno %}
+<div class="last-turno-banner">
+  <div class="last-turno-banner-icon"><i class="fa-solid fa-calendar-plus"></i></div>
+  <div style="flex:1;min-width:0;">
+    <div style="font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--primary);margin-bottom:3px;">Último turno registrado</div>
+    <div style="font-size:14.5px;font-weight:700;color:var(--text);">
+      {{ ultimo_turno.paciente }}
+      <span style="font-weight:400;color:var(--text-muted);font-size:13px;">— Dr/a. {{ ultimo_turno.medico }}</span>
+    </div>
+    <div style="font-size:12px;color:var(--text-muted);margin-top:2px;">
+      <i class="fa-solid fa-calendar" style="margin-right:4px;opacity:.6"></i>{{ ultimo_turno.fecha }}
+      <span style="margin:0 6px;opacity:.4">·</span>
+      <i class="fa-solid fa-clock" style="margin-right:4px;opacity:.6"></i>{{ ultimo_turno.hora }}
+      <span style="margin:0 6px;opacity:.4">·</span>
+      {{ ultimo_turno.especialidad }}
+    </div>
+  </div>
+  <span class="badge badge-{{ ultimo_turno.estado }}">{{ ultimo_turno.estado }}</span>
+</div>
+{% endif %}
 
 <!-- Stats row -->
 <div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px;">
   <div class="stat-card blue">
     <div class="stat-icon blue"><i class="fa-solid fa-calendar-days"></i></div>
-    <div>
-      <div class="stat-value">{{ total_turnos }}</div>
-      <div class="stat-label">Total turnos</div>
-    </div>
+    <div class="stat-value" style="font-size:36px;">{{ total_turnos }}</div>
+    <div class="stat-label">Total turnos</div>
   </div>
   <div class="stat-card green">
     <div class="stat-icon green"><i class="fa-solid fa-circle-check"></i></div>
-    <div>
-      <div class="stat-value">{{ confirmados }}</div>
-      <div class="stat-label">Confirmados</div>
-    </div>
+    <div class="stat-value" style="font-size:36px;">{{ confirmados }}</div>
+    <div class="stat-label">Confirmados</div>
   </div>
   <div class="stat-card red">
     <div class="stat-icon red"><i class="fa-solid fa-ban"></i></div>
-    <div>
-      <div class="stat-value">{{ cancelados }}</div>
-      <div class="stat-label">Cancelados</div>
-    </div>
+    <div class="stat-value" style="font-size:36px;">{{ cancelados }}</div>
+    <div class="stat-label">Cancelados</div>
   </div>
   <div class="stat-card purple">
     <div class="stat-icon purple"><i class="fa-solid fa-users"></i></div>
-    <div>
-      <div class="stat-value">{{ usuarios|length }}</div>
-      <div class="stat-label">Usuarios registrados</div>
-    </div>
+    <div class="stat-value" style="font-size:36px;">{{ usuarios|length }}</div>
+    <div class="stat-label">Usuarios registrados</div>
   </div>
 </div>
 
@@ -138,27 +149,27 @@
     {% if doctor_stats %}
       {% for d in doctor_stats %}
       <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border);">
-        <!-- Avatar coloreado por especialidad -->
+        <!-- Avatar -->
         <div style="width:42px;height:42px;border-radius:50%;background:{{ d.color }};color:#fff;
                     display:flex;align-items:center;justify-content:center;
                     font-size:12px;font-weight:700;flex-shrink:0;letter-spacing:-.5px;">
-          {{ d.medico.nombre|slice:":2"|upper }}
+          {{ d.medico.nombre_completo|slice:":2"|upper }}
         </div>
-        <!-- Nombre + especialidad + barra -->
+        <!-- Nombre + especialidad + badge + barra -->
         <div style="flex:1;min-width:0;">
           <div style="font-size:13.5px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
-            {{ d.medico.nombre }}
+            Dr/a. {{ d.medico.nombre_completo }}
           </div>
-          <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:6px;">{{ d.medico.especialidad.value }}</div>
-          <div style="height:4px;background:var(--surface2);border-radius:99px;overflow:hidden;">
+          <div style="font-size:11.5px;color:var(--text-muted);margin-bottom:5px;">{{ d.medico.especialidad }}</div>
+          <span class="doc-badge doc-badge-{{ d.badge_cls }}">{{ d.badge_txt }}</span>
+          <div style="height:4px;background:var(--surface2);border-radius:99px;overflow:hidden;margin-top:6px;">
             <div style="height:100%;width:{{ d.pct }}%;background:{{ d.color }};border-radius:99px;"></div>
           </div>
         </div>
-        <!-- Número + badge -->
-        <div style="text-align:right;flex-shrink:0;">
+        <!-- Número -->
+        <div style="text-align:right;flex-shrink:0;min-width:52px;">
           <div style="font-size:22px;font-weight:800;color:var(--text);line-height:1;">{{ d.turnos_hoy }}</div>
-          <div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;">turnos hoy</div>
-          <span class="doc-badge doc-badge-{{ d.badge_cls }}">{{ d.badge_txt }}</span>
+          <div style="font-size:10px;color:var(--text-muted);">turnos hoy</div>
         </div>
       </div>
       {% endfor %}
@@ -266,6 +277,100 @@
 
 </div>
 
+<!-- Nueva fila: Obras Sociales + Auditoría -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px;">
+
+  <!-- Obras Sociales -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><i class="fa-solid fa-notes-medical" style="margin-right:7px;color:var(--primary);"></i>Obras Sociales</div>
+      <button onclick="document.getElementById('modal-crear-os').classList.add('open')" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-plus"></i> Añadir
+      </button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Cobertura (%)</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for os in obras_sociales %}
+          <tr>
+            <td style="font-weight:600;font-size:13.5px;">{{ os.nombre }}</td>
+            <td>
+              <form method="post" style="display:flex;gap:5px;align-items:center;">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="editar_os">
+                <input type="hidden" name="os_id" value="{{ os.id }}">
+                <input type="number" step="0.1" name="cobertura" value="{{ os.cobertura }}" style="width:60px;padding:3px;font-size:12px;">
+                <button type="submit" class="btn btn-ghost btn-sm" title="Guardar"><i class="fa-solid fa-save" style="color:var(--primary);"></i></button>
+              </form>
+            </td>
+            <td>
+              <form method="post" style="display:inline;">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="eliminar_os">
+                <input type="hidden" name="os_id" value="{{ os.id }}">
+                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar {{ os.nombre }}?')">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:24px;">No hay obras sociales registradas.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Auditoría -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><i class="fa-solid fa-clipboard-list" style="margin-right:7px;color:var(--primary);"></i>Auditoría del Sistema</div>
+      <form method="get" style="display:flex;gap:5px;">
+        <select name="rol_auditoria" style="padding:4px;font-size:12px;" onchange="this.form.submit()">
+          <option value="">Todos los roles</option>
+          <option value="admin" {% if rol_auditoria == 'admin' %}selected{% endif %}>Admin</option>
+          <option value="secretaria" {% if rol_auditoria == 'secretaria' %}selected{% endif %}>Secretaria</option>
+          <option value="doctor" {% if rol_auditoria == 'doctor' %}selected{% endif %}>Doctor</option>
+          <option value="paciente" {% if rol_auditoria == 'paciente' %}selected{% endif %}>Paciente</option>
+        </select>
+      </form>
+    </div>
+    <div class="table-wrap" style="max-height:300px;overflow-y:auto;">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Usuario (Rol)</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in auditoria_logs %}
+          <tr>
+            <td style="font-size:11px;color:var(--text-soft);">{{ log.fecha|date:"d/m H:i" }}</td>
+            <td style="font-size:12px;"><strong>{{ log.usuario }}</strong> <span class="badge badge-{{ log.rol }}" style="font-size:9px;">{{ log.rol }}</span></td>
+            <td style="font-size:12px;color:var(--text-soft);" title="{{ log.detalles }}">
+              <strong style="color:var(--text);">{{ log.accion }}</strong><br>
+              <span style="display:block;max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ log.detalles }}</span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:24px;">No hay movimientos.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- Modal crear usuario -->
 <div class="modal-overlay" id="modal-crear">
   <div class="modal">
@@ -319,6 +424,37 @@
         <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Crear usuario</button>
         <button type="button" class="btn btn-ghost"
           onclick="document.getElementById('modal-crear').classList.remove('open')">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal crear obra social -->
+<div class="modal-overlay" id="modal-crear-os">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title"><i class="fa-solid fa-notes-medical" style="margin-right:8px;color:var(--primary);"></i>Nueva Obra Social</div>
+      <button class="modal-close" onclick="document.getElementById('modal-crear-os').classList.remove('open')">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+    <form method="post" style="display:flex;flex-direction:column;gap:12px;">
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="crear_os">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Nombre de la Obra Social *</label>
+          <input type="text" name="nombre" required placeholder="Ej: OSDE">
+        </div>
+        <div class="form-group full">
+          <label>Cobertura (%) *</label>
+          <input type="number" step="0.1" name="cobertura" required placeholder="Ej: 80.0">
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Guardar Obra Social</button>
+        <button type="button" class="btn btn-ghost"
+          onclick="document.getElementById('modal-crear-os').classList.remove('open')">Cancelar</button>
       </div>
     </form>
   </div>

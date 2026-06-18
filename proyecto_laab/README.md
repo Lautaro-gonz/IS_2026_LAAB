@@ -1,4 +1,4 @@
-# Turnos Médicos v2 — Sin base de datos (todo en memoria)
+# Turnos Médicos v2 — Con Base de Datos SQLite
 
 ## Cómo levantar
 
@@ -10,7 +10,11 @@ source venv/bin/activate
 # 2. Instalar dependencias
 pip install -r requirements.txt
 
-# 3. Levantar el servidor (sin migrate, sin createsuperuser)
+# 3. Aplicar migraciones para crear la base de datos
+python manage.py makemigrations
+python manage.py migrate
+
+# 4. Levantar el servidor
 python manage.py runserver
 ```
 
@@ -18,7 +22,7 @@ Abrí el navegador en: http://127.0.0.1:8000
 
 ---
 
-## Usuarios de prueba (ya cargados)
+## Usuarios de prueba (se cargarán al iniciar si no existen)
 
 | Usuario     | Contraseña | Rol        |
 |-------------|------------|------------|
@@ -37,11 +41,5 @@ Abrí el navegador en: http://127.0.0.1:8000
 | State       | EstadoPendiente/Confirmado... |
 | Observer    | Email/SMS/ConsoleObservador   |
 | Factory     | TurnoFactory                  |
-| Repository  | TurnoRepository               |
 
 ---
-
-## Importante
-
-Los datos se guardan en memoria mientras el servidor esté corriendo.
-Al reiniciar el servidor los turnos se pierden (los usuarios se mantienen porque están hardcodeados).

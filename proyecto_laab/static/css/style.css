@@ -85,11 +85,30 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-
 .nav-link i{width:17px;text-align:center;font-size:14px;opacity:.8}
 .nav-link:hover{background:rgba(255,255,255,.07);color:var(--sidebar-text-hover)}
 .nav-link.active{
-  background:rgba(26,86,219,.25);
+  background:rgba(26,86,219,.32);
   color:var(--sidebar-text-active);
-  border-color:rgba(26,86,219,.4);
+  border-color:rgba(26,86,219,.5);
+  box-shadow:inset 3px 0 0 #60a5fa;
+  padding-left:15px;
 }
 .nav-link.active i{opacity:1;color:#60a5fa}
+.notif-badge{
+  margin-left:auto;
+  min-width:19px;height:19px;
+  padding:0 5px;
+  border-radius:10px;
+  background:#ef4444;
+  color:#fff;
+  font-size:10.5px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  line-height:1;
+  box-shadow:0 0 0 2px rgba(239,68,68,.25);
+  animation:badge-pop .25s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes badge-pop{
+  from{transform:scale(0);opacity:0}
+  to  {transform:scale(1);opacity:1}
+}
 
 .sidebar-footer{padding:14px 12px;border-top:1px solid var(--sidebar-border)}
 .user-chip{
@@ -206,6 +225,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-
 .badge-CANCELADO{background:var(--danger-soft);color:#991b1b;border:1px solid #fecaca}
 .badge-COMPLETADO{background:#f1f5f9;color:#475569;border:1px solid var(--border)}
 .badge-EN\ ATENCION{background:var(--primary-soft);color:#1e40af;border:1px solid #bfdbfe}
+.badge-AUSENTE{background:var(--orange-soft);color:#9a3412;border:1px solid #fdba74}
 .badge-admin{background:var(--purple-soft);color:#5b21b6;border:1px solid #ddd6fe}
 .badge-secretaria{background:var(--primary-soft);color:#1e40af;border:1px solid #bfdbfe}
 .badge-doctor{background:var(--teal-soft);color:#155e75;border:1px solid #a5f3fc}
@@ -442,6 +462,7 @@ textarea{resize:vertical;min-height:80px}
 [data-theme="dark"] .badge-CANCELADO   {background:rgba(220,38,38,.2); color:#fca5a5;border-color:rgba(220,38,38,.35)}
 [data-theme="dark"] .badge-COMPLETADO  {background:rgba(100,116,139,.2);color:#94a3b8;border-color:rgba(100,116,139,.3)}
 [data-theme="dark"] .badge-EN\ ATENCION{background:rgba(26,86,219,.2); color:#93c5fd;border-color:rgba(26,86,219,.35)}
+[data-theme="dark"] .badge-AUSENTE    {background:rgba(234,88,12,.2);  color:#fb923c;border-color:rgba(234,88,12,.35)}
 [data-theme="dark"] .badge-admin       {background:rgba(124,58,237,.2);color:#c4b5fd;border-color:rgba(124,58,237,.35)}
 [data-theme="dark"] .badge-secretaria  {background:rgba(26,86,219,.2); color:#93c5fd;border-color:rgba(26,86,219,.35)}
 [data-theme="dark"] .badge-doctor      {background:rgba(8,145,178,.2); color:#67e8f9;border-color:rgba(8,145,178,.35)}
@@ -493,8 +514,86 @@ textarea{resize:vertical;min-height:80px}
 .doc-badge-amber{background:#fef3c7;color:#92400e}
 .doc-badge-red  {background:#fee2e2;color:#991b1b}
 .doc-badge-gray {background:#f1f5f9;color:#64748b}
+.doc-badge-teal {background:#ccfbf1;color:#0f766e}
+.doc-badge-blue {background:#dbeafe;color:#1d4ed8}
 
 [data-theme="dark"] .doc-badge-green{background:rgba(5,150,105,.2); color:#6ee7b7}
 [data-theme="dark"] .doc-badge-amber{background:rgba(217,119,6,.2); color:#fcd34d}
 [data-theme="dark"] .doc-badge-red  {background:rgba(220,38,38,.2); color:#fca5a5}
 [data-theme="dark"] .doc-badge-gray {background:rgba(100,116,139,.2);color:#94a3b8}
+[data-theme="dark"] .doc-badge-teal {background:rgba(13,148,136,.2); color:#5eead4}
+[data-theme="dark"] .doc-badge-blue {background:rgba(37,99,235,.2);  color:#93c5fd}
+
+/* ══ AGENDA ROW COLORS BY STATUS ══ */
+tr[data-estado="PENDIENTE"] td{background:rgba(254,243,199,.55)}
+tr[data-estado="CONFIRMADO"] td{background:rgba(219,234,254,.5)}
+tr[data-estado="EN ATENCION"] td{background:rgba(209,250,229,.5)}
+tr[data-estado="COMPLETADO"] td{background:rgba(248,250,252,.6)}
+tr[data-estado="CANCELADO"] td{background:rgba(254,242,242,.6)}
+tr[data-estado="AUSENTE"] td{background:rgba(255,237,213,.55)}
+
+tr[data-estado="PENDIENTE"]:hover td{background:rgba(254,243,199,.9)!important}
+tr[data-estado="CONFIRMADO"]:hover td{background:rgba(219,234,254,.9)!important}
+tr[data-estado="EN ATENCION"]:hover td{background:rgba(209,250,229,.9)!important}
+tr[data-estado="COMPLETADO"]:hover td{background:rgba(248,250,252,.9)!important}
+tr[data-estado="CANCELADO"]:hover td{background:rgba(254,242,242,.9)!important}
+tr[data-estado="AUSENTE"]:hover td{background:rgba(255,237,213,.9)!important}
+
+[data-theme="dark"] tr[data-estado="PENDIENTE"] td{background:rgba(217,119,6,.09)}
+[data-theme="dark"] tr[data-estado="CONFIRMADO"] td{background:rgba(26,86,219,.09)}
+[data-theme="dark"] tr[data-estado="EN ATENCION"] td{background:rgba(5,150,105,.09)}
+[data-theme="dark"] tr[data-estado="COMPLETADO"] td{background:rgba(100,116,139,.06)}
+[data-theme="dark"] tr[data-estado="CANCELADO"] td{background:rgba(220,38,38,.09)}
+[data-theme="dark"] tr[data-estado="AUSENTE"] td{background:rgba(234,88,12,.09)}
+
+/* ══ LIVE CLOCK ══ */
+.live-clock{
+  font-family:'JetBrains Mono',monospace;font-size:13px;
+  color:var(--text-muted);background:var(--surface2);
+  border:1px solid var(--border);padding:5px 12px;
+  border-radius:var(--radius);letter-spacing:.04em;
+  white-space:nowrap;
+}
+
+/* ══ LAST TURNO BANNER ══ */
+.last-turno-banner{
+  display:flex;align-items:center;gap:16px;
+  padding:16px 20px;border-radius:var(--radius-lg);
+  background:linear-gradient(135deg,#eef2ff,#e0f2fe);
+  border:1px solid rgba(26,86,219,.18);
+  margin-bottom:20px;
+}
+.last-turno-banner-icon{
+  width:44px;height:44px;border-radius:12px;
+  background:var(--primary-grad);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+  box-shadow:0 4px 14px rgba(26,86,219,.3);
+}
+[data-theme="dark"] .last-turno-banner{background:rgba(26,86,219,.12);border-color:rgba(26,86,219,.25)}
+
+/* ══ NOTIFICATION CARDS ══ */
+.notif-list{display:flex;flex-direction:column;gap:10px}
+.notif-card{
+  display:flex;align-items:flex-start;gap:14px;
+  padding:16px 18px;border-radius:var(--radius-lg);
+  border:1px solid var(--border);background:var(--surface);
+  box-shadow:var(--shadow);transition:box-shadow .18s;
+}
+.notif-card:hover{box-shadow:var(--shadow-md)}
+.notif-card.notif-leida{background:var(--surface2);opacity:.72}
+.notif-card-icon{
+  width:42px;height:42px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:17px;flex-shrink:0;
+}
+.notif-icon-email{background:var(--primary-soft);color:var(--primary)}
+.notif-icon-sms{background:var(--success-soft);color:var(--success)}
+.notif-icon-sistema{background:var(--warning-soft);color:var(--warning)}
+.notif-card-body{flex:1;min-width:0}
+.notif-card-meta{font-size:12px;color:var(--text-muted);margin-bottom:5px;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.notif-card-msg{font-size:13.5px;color:var(--text);font-weight:500;line-height:1.5;margin-bottom:4px}
+.notif-card-sub{font-size:12px;color:var(--text-soft)}
+.notif-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.notif-dot-unread{background:var(--primary)}
+.notif-dot-read{background:var(--border)}

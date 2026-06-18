@@ -15,6 +15,7 @@ class UsuarioDB(models.Model):
     nombre_completo = models.CharField(max_length=100)
     especialidad    = models.CharField(max_length=100, blank=True, default='')
     matricula       = models.CharField(max_length=50,  blank=True, default='')
+    dni             = models.CharField(max_length=20,  blank=True, default='')
 
     class Meta:
         db_table = 'usuarios'
@@ -32,7 +33,29 @@ class UsuarioDB(models.Model):
             'nombre_completo': self.nombre_completo,
             'especialidad':    self.especialidad,
             'matricula':       self.matricula,
+            'dni':             self.dni,
         }
+
+
+class AuditoriaDB(models.Model):
+    fecha    = models.DateTimeField(auto_now_add=True)
+    usuario  = models.CharField(max_length=100)
+    rol      = models.CharField(max_length=50)
+    accion   = models.CharField(max_length=50)
+    detalles = models.TextField()
+
+    class Meta:
+        db_table = 'auditoria'
+        ordering = ['-fecha']
+
+
+def registrar_auditoria(usuario, rol, accion, detalles):
+    AuditoriaDB.objects.create(
+        usuario=usuario,
+        rol=rol,
+        accion=accion,
+        detalles=detalles
+    )
 
 
 def inicializar_usuarios():
@@ -40,7 +63,17 @@ def inicializar_usuarios():
         {'username': 'admin',      'password': 'admin123', 'rol': 'admin',      'nombre_completo': 'Administrador'},
         {'username': 'secretaria', 'password': 'secre123', 'rol': 'secretaria', 'nombre_completo': 'Maria Secretaria'},
         {'username': 'doctor1',    'password': 'doc123',   'rol': 'doctor',     'nombre_completo': 'Ana Garcia',
-         'especialidad': 'Clinica Medica', 'matricula': 'MP-1001'},
+         'especialidad': 'Clínica Médica',  'matricula': 'MP-1001'},
+        {'username': 'doctor2',    'password': 'doc123',   'rol': 'doctor',     'nombre_completo': 'Carlos Lopez',
+         'especialidad': 'Pediatría',       'matricula': 'MP-1002'},
+        {'username': 'doctor3',    'password': 'doc123',   'rol': 'doctor',     'nombre_completo': 'Laura Martinez',
+         'especialidad': 'Cardiología',     'matricula': 'MP-1003'},
+        {'username': 'doctor4',    'password': 'doc123',   'rol': 'doctor',     'nombre_completo': 'Sofia Romero',
+         'especialidad': 'Ginecología',     'matricula': 'MP-1004'},
+        {'username': 'doctor5',    'password': 'doc123',   'rol': 'doctor',     'nombre_completo': 'Diego Fernandez',
+         'especialidad': 'Traumatología',   'matricula': 'MP-1005'},
+        {'username': 'doctor6',    'password': 'doc123',   'rol': 'doctor',     'nombre_completo': 'Valeria Torres',
+         'especialidad': 'Dermatología',    'matricula': 'MP-1006'},
         {'username': 'paciente1',  'password': 'pac123',   'rol': 'paciente',   'nombre_completo': 'Juan Perez'},
     ]
     for d in demos:

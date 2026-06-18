@@ -176,21 +176,7 @@ class Especialidad(Enum):
     DERMATOLOGIA   = "Dermatología"
 
 
-class ObraSocial:
-    COBERTURAS = {
-        "IPS Misiones": 80.0,
-        "OSECAC":       75.0,
-        "OSDE":         90.0,
-    }
 
-    def __init__(self, nombre):
-        if nombre not in self.COBERTURAS:
-            raise ValueError(f"Obra social '{nombre}' no valida.")
-        self.nombre    = nombre
-        self.cobertura = self.COBERTURAS[nombre]
-
-    def __str__(self):
-        return f"{self.nombre} (cubre {self.cobertura}%)"
 
 
 class Paciente:
@@ -206,14 +192,7 @@ class Paciente:
         return f"{self.nombre} (DNI: {self.dni}) [{os}]"
 
 
-class Medico:
-    def __init__(self, nombre, especialidad, matricula):
-        self.nombre       = nombre
-        self.especialidad = especialidad
-        self.matricula    = matricula
 
-    def __str__(self):
-        return f"Dr/a. {self.nombre} — {self.especialidad.value} (Mat: {self.matricula})"
 
 
 class CalculoCosto:
@@ -254,7 +233,10 @@ class Turno:
         self.costo              = CalculoCosto.calcular(paciente)
         self.motivo_cancelacion = ""
         # MEJORA 4: duracion segun especialidad del medico
-        self.duracion           = DURACIONES.get(medico.especialidad.value, 20)
+        esp = getattr(medico, 'especialidad', '')
+        if hasattr(esp, 'value'):
+            esp = esp.value
+        self.duracion           = DURACIONES.get(esp, 20)
 
     @property
     def estado(self):
@@ -281,8 +263,8 @@ class Turno:
             'id':                   self.id,
             'paciente':             self.paciente.nombre,
             'dni':                  self.paciente.dni,
-            'medico':               self.medico.nombre,
-            'especialidad':         self.medico.especialidad.value,
+            'medico':               getattr(self.medico, 'nombre_completo', getattr(self.medico, 'nombre', '')),
+            'especialidad':         getattr(self.medico, 'especialidad', ''),
             'fecha':                self.fecha,
             'hora':                 self.hora,
             'estado':               self.estado,
@@ -299,7 +281,6 @@ class Turno:
 class ValidadorCobertura:
     _instance = None
     _lock = threading.Lock()
-    OBRAS_VALIDAS = set(ObraSocial.COBERTURAS.keys())
 
     def __new__(cls):
         if cls._instance is None:
@@ -311,8 +292,7 @@ class ValidadorCobertura:
     def validar(self, paciente):
         if paciente.obra_social is None:
             return True, "Sin obra social — pagara el 100% ($10.000)"
-        if paciente.obra_social.nombre not in self.OBRAS_VALIDAS:
-            return False, f"'{paciente.obra_social.nombre}' no es valida."
+        # Si tiene obra social (instancia de ObraSocialDB), asumimos que es válida
         return True, f"Cobertura valida: {paciente.obra_social}"
 
 
@@ -353,98 +333,7 @@ class TurnoFactory:
         return turno
 
 
-# ══════════════════════════════════════════════════════════════
-# REPOSITORY
-# MEJORA: valida horario duplicado, paciente duplicado por dia
-#         y limite de turnos por medico por dia
-# ══════════════════════════════════════════════════════════════
 
-class TurnoRepository:
-    MAX_TURNOS_POR_DIA = 20
-
-    def __init__(self):
-        self._turnos = []
-
-    def agregar(self, turno):
-        turnos_medico_dia = self.buscar_por_medico_y_fecha(
-            turno.medico.nombre, turno.fecha
-        )
-
-        # MEJORA 1: No permitir dos turnos en el mismo horario
-        if any(t.hora == turno.hora for t in turnos_medico_dia):
-            raise ValueError(
-                f"El Dr. {turno.medico.nombre} ya tiene un turno "
-                f"a las {turno.hora} el {turno.fecha}."
-            )
-
-        # MEJORA: Limite de turnos por dia para el medico
-        if len(turnos_medico_dia) >= self.MAX_TURNOS_POR_DIA:
-            raise ValueError(
-                f"El Dr. {turno.medico.nombre} ya tiene "
-                f"{self.MAX_TURNOS_POR_DIA} turnos el {turno.fecha}. "
-                f"No hay mas disponibilidad."
-            )
-
-        # MEJORA: Un paciente no puede tener dos turnos el mismo dia
-        turnos_paciente = self.buscar_por_paciente(turno.paciente.dni)
-        if any(t.fecha == turno.fecha for t in turnos_paciente):
-            raise ValueError(
-                f"El paciente {turno.paciente.nombre} ya tiene "
-                f"un turno el {turno.fecha}."
-            )
-
-        self._turnos.append(turno)
-
-    def todos(self):
-        return list(self._turnos)
-
-    def buscar_por_id(self, id):
-        return next((t for t in self._turnos if t.id == id), None)
-
-    def buscar_por_paciente(self, dni):
-        return [t for t in self._turnos if t.paciente.dni == dni]
-
-    def buscar_por_medico_y_fecha(self, medico_nombre, fecha):
-        return [t for t in self._turnos
-                if t.medico.nombre == medico_nombre and t.fecha == fecha]
-
-
-# ══════════════════════════════════════════════════════════════
-# REGISTRO DINAMICO DE MEDICOS
-# ══════════════════════════════════════════════════════════════
-
-class MedicoRepository:
-    ESPECIALIDADES_VALIDAS = [e.value for e in Especialidad]
-
-    def __init__(self):
-        self._medicos = {}
-
-    def agregar(self, nombre, especialidad_str, matricula):
-        esp    = self._resolver_especialidad(especialidad_str)
-        medico = Medico(nombre, esp, matricula)
-        self._medicos[matricula] = medico
-        return medico
-
-    def eliminar(self, matricula):
-        self._medicos.pop(matricula, None)
-
-    def todos(self):
-        return list(self._medicos.values())
-
-    def buscar_por_matricula(self, matricula):
-        return self._medicos.get(matricula)
-
-    def buscar_por_indice(self, idx):
-        lista = self.todos()
-        if 0 <= idx < len(lista):
-            return lista[idx]
-        return None
-
-    def _resolver_especialidad(self, texto):
-        for e in Especialidad:
-            if e.value.lower() == texto.lower() or e.name.lower() == texto.lower():
-                return e
-        return Especialidad.CLINICA_MEDICA
 
 
 # Horarios de atención por matrícula: dias (0=Lun … 6=Dom), inicio y fin
@@ -457,17 +346,7 @@ HORARIOS = {
     "MP-1006": {"dias": [1,2,3,4,5], "inicio": "09:00", "fin": "17:00"},
 }
 
-OBRAS_SOCIALES = list(ObraSocial.COBERTURAS.keys())
+
 
 # Instancias globales
-repositorio = TurnoRepository()
 validador   = ValidadorCobertura()
-medico_repo = MedicoRepository()
-
-# Medicos iniciales
-medico_repo.agregar("Ana Garcia",       "Clinica Medica",  "MP-1001")
-medico_repo.agregar("Luis Martinez",    "Pediatria",       "MP-1002")
-medico_repo.agregar("Maria Lopez",      "Cardiologia",     "MP-1003")
-medico_repo.agregar("Carlos Rodriguez", "Ginecologia",     "MP-1004")
-medico_repo.agregar("Juan Perez",       "Traumatologia",   "MP-1005")
-medico_repo.agregar("Laura Sanchez",    "Dermatologia",    "MP-1006")

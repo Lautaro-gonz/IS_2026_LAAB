@@ -24,6 +24,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'accounts.middleware.SesionInactivaMiddleware',
 ]
 
 ROOT_URLCONF = 'turnos_medicos.urls'
@@ -37,6 +38,7 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.messages.context_processors.messages',
+                'turnos.context_processors.notificaciones_no_leidas',
             ],
         },
     },

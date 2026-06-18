@@ -8,6 +8,7 @@ class TurnoDB(models.Model):
         ('EN ATENCION', 'En Atención'),
         ('COMPLETADO',  'Completado'),
         ('CANCELADO',   'Cancelado'),
+        ('AUSENTE',     'Ausente'),
     ]
 
     paciente_nombre      = models.CharField(max_length=100)
@@ -30,6 +31,9 @@ class TurnoDB(models.Model):
     paga_paciente        = models.FloatField(default=10000.0)
     detalle_costo        = models.CharField(max_length=200, default='')
     motivo_cancelacion   = models.CharField(max_length=300, blank=True, default='')
+    motivo_consulta      = models.CharField(max_length=500, blank=True, default='')
+    notas_medico         = models.TextField(blank=True, default='')
+    costo_anterior       = models.FloatField(null=True, blank=True)
     creado_en            = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -55,6 +59,9 @@ class TurnoDB(models.Model):
             'estado':             self.estado,
             'duracion':           self.duracion,
             'motivo_cancelacion': self.motivo_cancelacion,
+            'motivo_consulta':    self.motivo_consulta,
+            'notas_medico':       self.notas_medico,
+            'costo_anterior':     self.costo_anterior,
             'costo': {
                 'costo_total':   self.costo_total,
                 'cubre_os':      self.cubre_os,
@@ -62,3 +69,57 @@ class TurnoDB(models.Model):
                 'detalle':       self.detalle_costo,
             },
         }
+
+
+class ObraSocialDB(models.Model):
+    nombre    = models.CharField(max_length=100, unique=True)
+    cobertura = models.FloatField(default=0.0)
+
+    class Meta:
+        db_table = 'obras_sociales'
+        ordering = ['nombre']
+
+    def __str__(self):
+        return f"{self.nombre} (cubre {self.cobertura}%)"
+
+    def to_dict(self):
+        return {
+            'id':        self.pk,
+            'nombre':    self.nombre,
+            'cobertura': self.cobertura,
+        }
+
+
+class NotificacionDB(models.Model):
+    TIPO_CHOICES = [
+        ('EMAIL',   'Email'),
+        ('SMS',     'SMS'),
+        ('SISTEMA', 'Sistema'),
+    ]
+    turno        = models.ForeignKey(TurnoDB, on_delete=models.CASCADE, related_name='notificaciones')
+    tipo         = models.CharField(max_length=10, choices=TIPO_CHOICES)
+    destinatario = models.CharField(max_length=100)
+    mensaje      = models.TextField()
+    leida        = models.BooleanField(default=False)
+    enviado_en   = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'notificaciones'
+        ordering = ['-enviado_en']
+
+    def __str__(self):
+        return f"[{self.tipo}] Turno #{self.turno_id} → {self.destinatario}"
+
+
+class InflacionDB(models.Model):
+    periodo       = models.CharField(max_length=7, unique=True)  # YYYY-MM
+    porcentaje    = models.FloatField()
+    fuente        = models.CharField(max_length=200, blank=True, default='Manual')
+    registrado_en = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'inflacion'
+        ordering = ['-registrado_en']
+
+    def __str__(self):
+        return f"{self.periodo} — {self.porcentaje}%"

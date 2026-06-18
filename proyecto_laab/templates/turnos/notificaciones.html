@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Notificaciones — laab{% endblock %}
+{% block page_title %}Historial de notificaciones{% endblock %}
+
+{% block content %}
+
+<div class="card">
+  <div class="card-header" style="margin-bottom:20px;">
+    <div>
+      <div class="card-title">
+        <i class="fa-solid fa-bell" style="margin-right:7px;color:var(--primary)"></i>
+        Notificaciones registradas
+      </div>
+      <div class="card-subtitle">{{ notificaciones|length }} notificación{{ notificaciones|length|pluralize:"es" }} en total</div>
+    </div>
+    <div style="display:flex;gap:12px;align-items:center;">
+      <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--primary);display:inline-block;"></span>No leída
+      </span>
+      <span style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-muted);">
+        <span style="width:8px;height:8px;border-radius:50%;background:var(--border);display:inline-block;"></span>Leída
+      </span>
+    </div>
+  </div>
+
+  {% if notificaciones %}
+  <div class="notif-list">
+    {% for n in notificaciones %}
+    <div class="notif-card {% if n.leida %}notif-leida{% endif %}">
+
+      <!-- Dot indicador leída/no leída -->
+      <div class="notif-dot {% if n.leida %}notif-dot-read{% else %}notif-dot-unread{% endif %}"></div>
+
+      <!-- Ícono por tipo -->
+      <div class="notif-card-icon
+        {% if n.tipo == 'EMAIL' %}notif-icon-email
+        {% elif n.tipo == 'SMS' %}notif-icon-sms
+        {% else %}notif-icon-sistema{% endif %}">
+        {% if n.tipo == 'EMAIL' %}
+          <i class="fa-solid fa-envelope"></i>
+        {% elif n.tipo == 'SMS' %}
+          <i class="fa-solid fa-comment-sms"></i>
+        {% else %}
+          <i class="fa-solid fa-bell"></i>
+        {% endif %}
+      </div>
+
+      <!-- Contenido -->
+      <div class="notif-card-body">
+        <div class="notif-card-meta">
+          {% if n.tipo == 'EMAIL' %}
+            <span style="color:var(--primary);font-weight:700;">Email</span>
+          {% elif n.tipo == 'SMS' %}
+            <span style="color:var(--success);font-weight:700;">SMS</span>
+          {% else %}
+            <span style="color:var(--warning);font-weight:700;">Sistema</span>
+          {% endif %}
+          <span style="opacity:.4">·</span>
+          <span>Turno #{{ n.turno.id }}</span>
+          <span style="opacity:.4">·</span>
+          <span>{{ n.enviado_en|date:"d/m/Y H:i" }}</span>
+          {% if not n.leida %}
+          <span style="background:var(--primary);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:99px;">NUEVA</span>
+          {% endif %}
+        </div>
+        <div class="notif-card-msg">{{ n.mensaje }}</div>
+        <div class="notif-card-sub">
+          <i class="fa-solid fa-user" style="margin-right:4px;opacity:.55"></i>{{ n.turno.paciente_nombre }}
+          <span style="margin:0 8px;opacity:.35">|</span>
+          <i class="fa-solid fa-at" style="margin-right:4px;opacity:.55"></i>{{ n.destinatario }}
+        </div>
+      </div>
+
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon"><i class="fa-solid fa-bell-slash"></i></div>
+      <h3>Sin notificaciones</h3>
+      <p>No hay notificaciones registradas aún.</p>
+    </div>
+  {% endif %}
+</div>
+
+{% endblock %}

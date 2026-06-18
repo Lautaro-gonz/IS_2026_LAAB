@@ -49,11 +49,74 @@
       </div>
       <div style="text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:6px;">
         <span class="badge badge-{{ t.estado }}">{{ t.estado }}</span>
-        <a href="{% url 'turnos:detalle_turno' t.id %}" class="btn btn-ghost btn-sm">
-          <i class="fa-solid fa-eye"></i> Ver detalle
-        </a>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;">
+          <a href="{% url 'turnos:detalle_turno' t.id %}" class="btn btn-ghost btn-sm">
+            <i class="fa-solid fa-eye"></i>
+          </a>
+          {% if t.estado == 'CONFIRMADO' %}
+            <form method="post" action="{% url 'turnos:accion_turno' t.id %}" style="display:inline;">
+              {% csrf_token %}
+              <input type="hidden" name="accion" value="atender">
+              <input type="hidden" name="next" value="doctor">
+              <button type="submit" class="btn btn-primary btn-sm">
+                <i class="fa-solid fa-stethoscope"></i> Atender
+              </button>
+            </form>
+          {% endif %}
+          {% if t.estado == 'EN ATENCION' %}
+            <button class="btn btn-success btn-sm"
+              onclick="document.getElementById('modal-completar-{{ t.id }}').classList.add('open')">
+              <i class="fa-solid fa-flag-checkered"></i> Completar
+            </button>
+          {% endif %}
+          {% if t.notas_medico %}
+            <span style="font-size:11px;color:var(--text-muted);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"
+              title="{{ t.notas_medico }}">
+              <i class="fa-solid fa-note-sticky"></i> {{ t.notas_medico|truncatechars:40 }}
+            </span>
+          {% endif %}
+        </div>
       </div>
     </div>
+
+    <!-- Modal completar con notas -->
+    {% if t.estado == 'EN ATENCION' %}
+    <div class="modal-overlay" id="modal-completar-{{ t.id }}">
+      <div class="modal">
+        <div class="modal-header">
+          <div class="modal-title">
+            <i class="fa-solid fa-flag-checkered" style="color:var(--success);margin-right:8px"></i>
+            Completar turno #{{ t.id }}
+          </div>
+          <button class="modal-close"
+            onclick="document.getElementById('modal-completar-{{ t.id }}').classList.remove('open')">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <form method="post" action="{% url 'turnos:accion_turno' t.id %}">
+          {% csrf_token %}
+          <input type="hidden" name="accion" value="completar">
+          <input type="hidden" name="next" value="doctor">
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Notas del médico <span style="color:var(--text-muted);font-weight:400;">(opcional)</span></label>
+            <textarea name="notas_medico" rows="4"
+              placeholder="Diagnóstico, indicaciones, próximos pasos..."
+              style="resize:vertical;font-family:inherit;font-size:14px;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;width:100%;background:var(--surface);color:var(--text);"></textarea>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <button type="submit" class="btn btn-success">
+              <i class="fa-solid fa-flag-checkered"></i> Completar turno
+            </button>
+            <button type="button" class="btn btn-ghost"
+              onclick="document.getElementById('modal-completar-{{ t.id }}').classList.remove('open')">
+              Cerrar
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    {% endif %}
+
     {% endfor %}
   {% else %}
     <div class="empty-state">

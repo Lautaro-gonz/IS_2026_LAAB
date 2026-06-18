@@ -60,6 +60,18 @@
           <a href="{% url 'turnos:crear_turno' %}" class="nav-link {% if request.resolver_match.url_name == 'crear_turno' %}active{% endif %}">
             <i class="fa-solid fa-calendar-plus"></i> Nuevo turno
           </a>
+          <a href="{% url 'turnos:notificaciones' %}" class="nav-link {% if request.resolver_match.url_name == 'notificaciones' %}active{% endif %}">
+            <i class="fa-solid fa-bell"></i> Notificaciones
+            {% if notif_no_leidas > 0 %}
+              <span class="notif-badge">{% if notif_no_leidas >= 100 %}99+{% else %}{{ notif_no_leidas }}{% endif %}</span>
+            {% endif %}
+          </a>
+          <a href="{% url 'turnos:cargar_inflacion' %}" class="nav-link {% if request.resolver_match.url_name == 'cargar_inflacion' %}active{% endif %}">
+            <i class="fa-solid fa-chart-line"></i> Ajuste por inflación
+          </a>
+          <a href="{% url 'turnos:estadisticas' %}" class="nav-link {% if request.resolver_match.url_name == 'estadisticas' %}active{% endif %}">
+            <i class="fa-solid fa-file-export"></i> Exportar estadísticas
+          </a>
 
         {% elif rol == 'secretaria' %}
           <span class="nav-label">Secretaría</span>
@@ -68,6 +80,15 @@
           </a>
           <a href="{% url 'turnos:crear_turno' %}" class="nav-link {% if request.resolver_match.url_name == 'crear_turno' %}active{% endif %}">
             <i class="fa-solid fa-calendar-plus"></i> Nuevo turno
+          </a>
+          <a href="{% url 'turnos:notificaciones' %}" class="nav-link {% if request.resolver_match.url_name == 'notificaciones' %}active{% endif %}">
+            <i class="fa-solid fa-bell"></i> Notificaciones
+            {% if notif_no_leidas > 0 %}
+              <span class="notif-badge">{% if notif_no_leidas >= 100 %}99+{% else %}{{ notif_no_leidas }}{% endif %}</span>
+            {% endif %}
+          </a>
+          <a href="{% url 'turnos:estadisticas' %}" class="nav-link {% if request.resolver_match.url_name == 'estadisticas' %}active{% endif %}">
+            <i class="fa-solid fa-file-export"></i> Exportar estadísticas
           </a>
 
         {% elif rol == 'doctor' %}
@@ -80,6 +101,12 @@
           <span class="nav-label">Paciente</span>
           <a href="{% url 'turnos:panel_paciente' %}" class="nav-link {% if request.resolver_match.url_name == 'panel_paciente' %}active{% endif %}">
             <i class="fa-solid fa-file-medical"></i> Mis turnos
+          </a>
+          <a href="{% url 'turnos:notificaciones' %}" class="nav-link {% if request.resolver_match.url_name == 'notificaciones' %}active{% endif %}">
+            <i class="fa-solid fa-bell"></i> Mis notificaciones
+            {% if notif_no_leidas > 0 %}
+              <span class="notif-badge">{% if notif_no_leidas >= 100 %}99+{% else %}{{ notif_no_leidas }}{% endif %}</span>
+            {% endif %}
           </a>
         {% endif %}
 
@@ -108,6 +135,7 @@
     <div class="topbar">
       <div class="topbar-title">{% block page_title %}{% endblock %}</div>
       <div class="topbar-actions" style="display:flex;align-items:center;gap:8px;">
+        <span class="live-clock" id="live-clock"></span>
         {% block topbar_actions %}{% endblock %}
         <button class="btn-theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
           <i class="fa-solid fa-moon" id="theme-icon"></i>
@@ -144,6 +172,85 @@
     syncIcon(n);
   };
 })();
+(function(){
+  var DIAS=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+  var MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  function pad(n){return n<10?'0'+n:n}
+  function tick(){
+    var d=new Date();
+    var el=document.getElementById('live-clock');
+    if(!el)return;
+    el.textContent=DIAS[d.getDay()]+' '+pad(d.getDate())+' '+MESES[d.getMonth()]+' · '+pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds());
+  }
+  tick();
+  setInterval(tick,1000);
+})();
 </script>
+
+{% if request.session.usuario %}
+<!-- Modal de sesión por expirar -->
+<div id="modal-timeout" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);align-items:center;justify-content:center;">
+  <div style="background:var(--surface,#fff);border-radius:14px;padding:32px 28px;max-width:360px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.35);text-align:center;">
+    <div style="font-size:36px;margin-bottom:12px;">⏱</div>
+    <div style="font-weight:700;font-size:16px;margin-bottom:8px;color:var(--text,#111);">Sesión por expirar</div>
+    <div style="font-size:13px;color:var(--text-muted,#666);margin-bottom:20px;">
+      Tu sesión se cerrará automáticamente en <strong id="cuenta-regresiva">60</strong> segundos por inactividad.
+    </div>
+    <button onclick="reiniciarTimer()" style="background:#16a34a;color:#fff;border:none;border-radius:8px;padding:10px 28px;font-size:14px;font-weight:600;cursor:pointer;">
+      Seguir conectado
+    </button>
+  </div>
+</div>
+
+<script>
+(function(){
+  var TIMEOUT   = 15 * 60 * 1000;   // 15 min
+  var AVISO     = 14 * 60 * 1000;   // aviso al minuto 14
+  var timerIdle, timerCuenta, intervalo;
+  var modal     = document.getElementById('modal-timeout');
+  var cuenta    = document.getElementById('cuenta-regresiva');
+
+  function cerrarSesion(){
+    window.location.href = '/logout/';
+  }
+
+  function mostrarAviso(){
+    modal.style.display = 'flex';
+    var seg = 60;
+    cuenta.textContent = seg;
+    intervalo = setInterval(function(){
+      seg--;
+      cuenta.textContent = seg;
+      if(seg <= 0){ clearInterval(intervalo); cerrarSesion(); }
+    }, 1000);
+    timerIdle = setTimeout(cerrarSesion, 60 * 1000);
+  }
+
+  window.reiniciarTimer = function(){
+    clearTimeout(timerIdle);
+    clearTimeout(timerCuenta);
+    clearInterval(intervalo);
+    modal.style.display = 'none';
+    arrancar();
+  };
+
+  function arrancar(){
+    timerCuenta = setTimeout(mostrarAviso, AVISO);
+  }
+
+  var eventos = ['mousemove','keydown','click','scroll','touchstart'];
+  eventos.forEach(function(ev){
+    document.addEventListener(ev, function(){
+      if(modal.style.display === 'none'){
+        clearTimeout(timerCuenta);
+        arrancar();
+      }
+    }, { passive: true });
+  });
+
+  arrancar();
+})();
+</script>
+{% endif %}
 </body>
 </html>

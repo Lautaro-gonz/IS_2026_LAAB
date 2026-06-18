@@ -1,0 +1,278 @@
+{% extends 'base.html' %}
+{% block title %}Ajuste por inflación — laab{% endblock %}
+{% block page_title %}Ajuste de precios por inflación INDEC{% endblock %}
+
+{% block content %}
+
+<div style="display:grid;grid-template-columns:400px 1fr;gap:20px;max-width:1100px;">
+
+  <!-- Columna izquierda: formulario + aplicar -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Registrar inflación -->
+    <div class="card">
+      <div class="card-header" style="margin-bottom:4px;">
+        <div>
+          <div class="card-title">
+            <i class="fa-solid fa-chart-line" style="margin-right:6px;color:var(--primary)"></i>
+            Registrar inflación
+          </div>
+          <div class="card-subtitle">Cargar porcentaje INDEC por período</div>
+        </div>
+      </div>
+
+      <!-- Nota INDEC -->
+      <div style="background:var(--primary-soft);border:1px solid rgba(26,86,219,.18);border-radius:10px;padding:11px 14px;margin-bottom:16px;font-size:12.5px;color:var(--primary);line-height:1.6;">
+        <i class="fa-solid fa-circle-info" style="margin-right:6px;"></i>
+        El dato se obtiene del <strong>Índice de Precios al Consumidor (IPC)</strong>
+        publicado por el <strong>INDEC Argentina</strong>.
+        Podés cargarlo automáticamente o escribirlo a mano.
+      </div>
+
+      <!-- Botón INDEC -->
+      <button id="btn-indec" type="button" onclick="obtenerINDEC()"
+        style="display:flex;align-items:center;justify-content:center;gap:9px;width:100%;
+               padding:12px;border-radius:10px;border:1.5px solid #2563eb;
+               background:var(--primary-soft);color:var(--primary);
+               font-size:13.5px;font-weight:700;cursor:pointer;
+               font-family:'Inter',sans-serif;transition:all .18s;margin-bottom:4px;">
+        <i class="fa-solid fa-satellite-dish"></i> Obtener dato del INDEC
+      </button>
+      <div id="indec-status" style="margin-bottom:10px;"></div>
+
+      {% if error %}
+        <div class="message error" style="margin-bottom:14px;">
+          <i class="fa-solid fa-circle-exclamation"></i> {{ error }}
+        </div>
+      {% endif %}
+
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="registrar">
+        <input type="hidden" name="fuente" id="id-fuente" value="Manual">
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label>Período <span style="color:var(--text-muted);font-size:12px;">(YYYY-MM)</span></label>
+          <input type="text" name="periodo" id="id-periodo"
+            placeholder="2025-04" maxlength="7" pattern="\d{4}-\d{2}"
+            title="Formato YYYY-MM" style="font-family:'JetBrains Mono',monospace;" required>
+        </div>
+        <div class="form-group" style="margin-bottom:20px;">
+          <label>Porcentaje de inflación (%)</label>
+          <input type="number" name="porcentaje" id="id-porcentaje"
+            placeholder="Ej: 2.4" step="0.01" min="0.01" required>
+          <div style="font-size:11.5px;color:var(--text-muted);margin-top:5px;">
+            <i class="fa-solid fa-pencil" style="margin-right:3px;"></i>
+            Podés editar este valor antes de guardar
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%;">
+          <i class="fa-solid fa-floppy-disk"></i> Guardar porcentaje
+        </button>
+      </form>
+    </div>
+
+    <!-- Botón Aplicar ajuste -->
+    <div class="card" style="border:1.5px solid #fbbf24;background:var(--warning-soft);">
+      <div style="margin-bottom:12px;">
+        <div style="font-weight:700;font-size:14px;color:#92400e;margin-bottom:4px;">
+          <i class="fa-solid fa-bolt" style="margin-right:6px;"></i>Aplicar ajuste ahora
+        </div>
+        <div style="font-size:12px;color:#92400e;line-height:1.6;">
+          Toma el porcentaje más reciente registrado y actualiza el costo
+          de todos los turnos futuros en estado <strong>Pendiente</strong> o <strong>Confirmado</strong>.
+        </div>
+      </div>
+      <form method="post"
+        onsubmit="return confirm('¿Aplicar el ajuste por inflación a todos los turnos futuros? Esta acción modifica los precios en la base de datos.')">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="aplicar">
+        <button type="submit" class="btn btn-sm"
+          style="width:100%;background:#d97706;color:#fff;border:none;padding:10px;font-weight:600;border-radius:8px;cursor:pointer;">
+          <i class="fa-solid fa-rotate"></i> Aplicar ajuste sobre turnos futuros
+        </button>
+      </form>
+    </div>
+
+  </div>
+
+  <!-- Columna derecha: resultado + historial -->
+  <div style="display:flex;flex-direction:column;gap:16px;">
+
+    <!-- Resultado del ajuste -->
+    {% if resultado %}
+    <div class="card" style="border:1.5px solid #a7f3d0;background:var(--success-soft);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div style="width:42px;height:42px;border-radius:50%;background:#059669;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+          <i class="fa-solid fa-circle-check" style="color:#fff;font-size:18px;"></i>
+        </div>
+        <div>
+          <div style="font-weight:700;font-size:15px;color:#065f46;">Ajuste aplicado correctamente</div>
+          <div style="font-size:13px;color:#047857;">
+            Período <strong>{{ resultado.periodo }}</strong> —
+            <strong>+{{ resultado.porcentaje }}%</strong> sobre
+            <strong>{{ resultado.cantidad }}</strong> turno{{ resultado.cantidad|pluralize:"s" }}
+          </div>
+        </div>
+      </div>
+
+      {% if resultado.detalle %}
+      <div class="table-wrap" style="max-height:300px;overflow-y:auto;">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Paciente</th>
+              <th>Fecha</th>
+              <th>Precio anterior</th>
+              <th>Precio nuevo</th>
+              <th>Diferencia</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for t in resultado.detalle %}
+            <tr>
+              <td style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted);">#{{ t.id }}</td>
+              <td style="font-size:13px;">{{ t.paciente }}</td>
+              <td style="font-family:'JetBrains Mono',monospace;font-size:12px;">{{ t.fecha }}</td>
+              <td style="font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text-muted);text-decoration:line-through;">${{ t.precio_anterior|floatformat:0 }}</td>
+              <td style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--success);">${{ t.precio_nuevo|floatformat:0 }}</td>
+              <td style="font-size:12px;color:#d97706;font-weight:600;">+{{ resultado.porcentaje }}%</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <div style="font-size:13px;color:#047857;text-align:center;padding:12px 0;">
+          <i class="fa-solid fa-circle-info"></i>
+          No había turnos futuros en estado Pendiente o Confirmado para ajustar.
+        </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Historial de registros -->
+    <div class="card">
+      <div class="card-header" style="margin-bottom:16px;">
+        <div>
+          <div class="card-title">
+            <i class="fa-solid fa-clock-rotate-left" style="margin-right:6px;color:var(--primary)"></i>
+            Historial de porcentajes
+          </div>
+          <div class="card-subtitle">Registros guardados con su origen</div>
+        </div>
+      </div>
+
+      {% if historial %}
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Período</th>
+              <th>Porcentaje</th>
+              <th>Fuente</th>
+              <th>Registrado el</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for infl in historial %}
+            <tr>
+              <td style="font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--primary);">
+                {{ infl.periodo }}
+              </td>
+              <td>
+                <span style="font-size:15px;font-weight:700;color:var(--success);">+{{ infl.porcentaje }}%</span>
+              </td>
+              <td>
+                {% if 'INDEC' in infl.fuente %}
+                  <span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;
+                               color:var(--primary);background:var(--primary-soft);
+                               border:1px solid rgba(26,86,219,.2);padding:3px 9px;border-radius:6px;">
+                    <i class="fa-solid fa-satellite-dish"></i> {{ infl.fuente }}
+                  </span>
+                {% else %}
+                  <span style="font-size:12px;color:var(--text-muted);">
+                    <i class="fa-solid fa-pencil" style="margin-right:3px;"></i>{{ infl.fuente }}
+                  </span>
+                {% endif %}
+              </td>
+              <td style="font-size:12px;color:var(--text-muted);">
+                {{ infl.registrado_en|date:"d/m/Y H:i" }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-icon"><i class="fa-solid fa-chart-line"></i></div>
+          <p>No hay registros de inflación cargados.</p>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+
+<script>
+async function obtenerINDEC() {
+  var btn      = document.getElementById('btn-indec');
+  var statusEl = document.getElementById('indec-status');
+
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Consultando INDEC...';
+  statusEl.innerHTML = '';
+
+  try {
+    var resp = await fetch('{% url "turnos:obtener_indec" %}', {
+      headers: {
+        'X-Requested-With': 'XMLHttpRequest',
+        'X-CSRFToken': '{{ csrf_token }}',
+      },
+    });
+    var data = await resp.json();
+
+    if (data.ok) {
+      document.getElementById('id-periodo').value   = data.periodo;
+      document.getElementById('id-porcentaje').value = data.porcentaje;
+      document.getElementById('id-fuente').value     = data.fuente;
+
+      statusEl.innerHTML =
+        '<div class="message success" style="margin-top:0;">' +
+        '<i class="fa-solid fa-circle-check"></i>' +
+        '<div>' +
+        '<strong>Dato obtenido del INDEC</strong><br>' +
+        '<span style="font-size:12.5px;">' +
+        'Período: <strong>' + data.periodo + '</strong> · ' +
+        'Variación mensual IPC: <strong>+' + data.porcentaje + '%</strong>' +
+        '</span>' +
+        '<br><span style="font-size:11px;color:#047857;opacity:.85;">' + data.fuente + '</span>' +
+        '<div style="margin-top:8px;padding:8px 10px;background:rgba(5,150,105,.12);' +
+        'border-radius:7px;font-size:11.5px;color:#065f46;line-height:1.55;">' +
+        '<i class="fa-solid fa-circle-info" style="margin-right:4px;"></i>' +
+        'Este es el porcentaje de variación mensual del Índice de Precios al Consumidor (IPC) ' +
+        'publicado por el INDEC. Solo se aplica a turnos futuros en estado PENDIENTE.' +
+        '</div>' +
+        '</div></div>';
+    } else {
+      statusEl.innerHTML =
+        '<div class="message error" style="margin-top:0;">' +
+        '<i class="fa-solid fa-circle-exclamation"></i> ' + data.error +
+        '</div>';
+    }
+  } catch (e) {
+    statusEl.innerHTML =
+      '<div class="message error" style="margin-top:0;">' +
+      '<i class="fa-solid fa-circle-exclamation"></i> ' +
+      'No se pudo conectar con el INDEC. Podés ingresar el porcentaje manualmente.' +
+      '</div>';
+  }
+
+  btn.disabled = false;
+  btn.innerHTML = '<i class="fa-solid fa-satellite-dish"></i> Obtener dato del INDEC';
+}
+</script>
+
+{% endblock %}

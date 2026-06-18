@@ -407,43 +407,143 @@
   <div class="login-form-panel">
     <div class="login-form-inner">
 
-      <div class="login-eyebrow">BIENVENIDO</div>
-      <div class="login-heading">Iniciar <span>sesión</span></div>
-      <div class="login-subheading">Sistema de Turnos · Clínica LAAB</div>
+      <!-- ── Panel LOGIN ── -->
+      <div id="panel-login">
+        <div class="login-eyebrow">BIENVENIDO</div>
+        <div class="login-heading">Iniciar <span>sesión</span></div>
+        <div class="login-subheading">Sistema de Turnos · Clínica LAAB</div>
 
-      {% if messages %}
-        {% for message in messages %}
-          <div class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ message }}</div>
-        {% endfor %}
-      {% endif %}
+        {% if timeout %}
+          <div class="error-msg">
+            <i class="fa-solid fa-clock"></i>
+            Tu sesión se cerró por inactividad. Volvé a iniciar sesión.
+          </div>
+        {% endif %}
+        {% if messages %}
+          {% for message in messages %}
+            <div class="{% if 'creada' in message.message or 'exitosamente' in message.message %}success-msg{% else %}error-msg{% endif %}">
+              <i class="fa-solid fa-{% if 'creada' in message.message or 'exitosamente' in message.message %}circle-check{% else %}circle-exclamation{% endif %}"></i>
+              {{ message }}
+            </div>
+          {% endfor %}
+        {% endif %}
 
-      <form method="post" style="display:flex;flex-direction:column;">
-        {% csrf_token %}
+        <form method="post" action="{% url 'accounts:login' %}" style="display:flex;flex-direction:column;">
+          {% csrf_token %}
+          <div class="field-wrap">
+            <div class="field-label"><i class="fa-regular fa-user"></i> USUARIO</div>
+            <input class="dark-input" type="text" name="username" placeholder="Ingresá tu usuario" autofocus required>
+          </div>
+          <div class="field-wrap">
+            <div class="field-label"><i class="fa-solid fa-lock"></i> CONTRASEÑA</div>
+            <input class="dark-input" type="password" name="password" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn-login">
+            <i class="fa-solid fa-right-to-bracket"></i> INICIAR SESIÓN
+          </button>
+        </form>
 
-        <div class="field-wrap">
-          <div class="field-label"><i class="fa-regular fa-user"></i> USUARIO</div>
-          <input class="dark-input" type="text" name="username" placeholder="Ingresá tu usuario" autofocus required>
+        <div style="text-align:center;margin-top:20px;">
+          <span style="font-size:12px;color:rgba(255,255,255,.3);">¿Primera vez?</span>
+          <button onclick="mostrarRegistro()" style="background:none;border:none;cursor:pointer;font-size:12px;font-weight:700;color:#60a5fa;margin-left:6px;font-family:'Inter',sans-serif;">
+            Crear cuenta
+          </button>
         </div>
 
-        <div class="field-wrap">
-          <div class="field-label"><i class="fa-solid fa-lock"></i> CONTRASEÑA</div>
-          <input class="dark-input" type="password" name="password" placeholder="••••••••" required>
-        </div>
+      </div>
 
-        <button type="submit" class="btn-login">
-          <i class="fa-solid fa-right-to-bracket"></i> INICIAR SESIÓN
-        </button>
-      </form>
+      <!-- ── Panel REGISTRO ── -->
+      <div id="panel-registro" style="display:none;">
+        <div class="login-eyebrow">NUEVA CUENTA</div>
+        <div class="login-heading">Crear <span>cuenta</span></div>
+        <div class="login-subheading">Seleccioná tu rol para registrarte</div>
 
-      <div class="demo-card">
-        <div class="demo-card-title">
-          <i class="fa-solid fa-circle-info"></i> USUARIOS DE PRUEBA
+        {% if reg_error %}
+          <div class="error-msg"><i class="fa-solid fa-circle-exclamation"></i> {{ reg_error }}</div>
+        {% endif %}
+
+        <!-- Selector de rol: grilla 2x2 -->
+        <div class="rol-selector">
+          <button type="button" class="rol-btn" id="btn-paciente" onclick="seleccionarRol('paciente')">
+            <i class="fa-solid fa-user"></i> Paciente
+          </button>
+          <button type="button" class="rol-btn" id="btn-doctor" onclick="seleccionarRol('doctor')">
+            <i class="fa-solid fa-user-doctor"></i> Doctor/a
+          </button>
+          <button type="button" class="rol-btn" id="btn-admin" onclick="seleccionarRol('admin')">
+            <i class="fa-solid fa-shield-halved"></i> Administrador
+          </button>
         </div>
-        <div class="demo-grid">
-          <div>admin / admin123</div>
-          <div>secretaria / secre123</div>
-          <div>doctor1 / doc123</div>
-          <div>paciente1 / pac123</div>
+        <div class="rol-desc" id="desc-paciente">Registrate para solicitar turnos médicos en línea.</div>
+        <div class="rol-desc" id="desc-doctor"     style="display:none;">Registrate con tu matrícula profesional para gestionar tus turnos.</div>
+        <div class="rol-desc" id="desc-admin" style="display:none;">Acceso restringido. Requiere código de autorización administrativo.</div>
+
+        <form method="post" action="{% url 'accounts:registro' %}" style="display:flex;flex-direction:column;">
+          {% csrf_token %}
+          <input type="hidden" name="rol" id="rol-input" value="paciente">
+
+          <div class="field-wrap">
+            <div class="field-label"><i class="fa-solid fa-id-card"></i> NOMBRE COMPLETO</div>
+            <input class="dark-input" type="text" name="nombre_completo" placeholder="Ej: Juan Pérez" required>
+          </div>
+          <div class="field-wrap">
+            <div class="field-label"><i class="fa-regular fa-user"></i> NOMBRE DE USUARIO</div>
+            <input class="dark-input" type="text" name="username" placeholder="Mínimo 4 caracteres" required minlength="4">
+          </div>
+
+          <!-- Campos: Paciente -->
+          <div id="campos-paciente">
+            <div class="field-wrap">
+              <div class="field-label"><i class="fa-solid fa-fingerprint"></i> DNI</div>
+              <input class="dark-input" type="text" name="dni" id="input-dni" placeholder="Ej: 38123456 (sin puntos)" maxlength="8" inputmode="numeric">
+            </div>
+          </div>
+
+          <!-- Campos: Doctor -->
+          <div id="campos-doctor" style="display:none;">
+            <div class="field-wrap">
+              <div class="field-label"><i class="fa-solid fa-stethoscope"></i> ESPECIALIDAD</div>
+              <select class="dark-input" name="especialidad" id="input-especialidad">
+                <option value="">Seleccioná tu especialidad</option>
+                {% for esp in especialidades %}
+                  <option value="{{ esp }}">{{ esp }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="field-wrap">
+              <div class="field-label"><i class="fa-solid fa-id-badge"></i> MATRÍCULA PROFESIONAL</div>
+              <input class="dark-input" type="text" name="matricula" id="input-matricula" placeholder="Ej: MP-12345">
+              <div style="font-size:11px;color:rgba(255,255,255,.3);margin-top:5px;">Formato: MP- seguido de 4 a 6 dígitos</div>
+            </div>
+          </div>
+
+          <!-- Campos: Secretaria y Admin (código institucional) -->
+          <div id="campos-codigo" style="display:none;">
+            <div class="field-wrap">
+              <div class="field-label"><i class="fa-solid fa-key"></i> <span id="label-codigo">CÓDIGO INSTITUCIONAL</span></div>
+              <input class="dark-input" type="password" name="codigo_institucional" id="input-codigo" placeholder="Ingresá el código provisto por la clínica">
+            </div>
+          </div>
+
+          <div class="field-wrap">
+            <div class="field-label"><i class="fa-solid fa-lock"></i> CONTRASEÑA</div>
+            <input class="dark-input" type="password" name="password" placeholder="Mínimo 6 caracteres" required minlength="6">
+          </div>
+          <div class="field-wrap">
+            <div class="field-label"><i class="fa-solid fa-lock"></i> REPETIR CONTRASEÑA</div>
+            <input class="dark-input" type="password" name="confirm_password" placeholder="••••••••" required>
+          </div>
+
+          <button type="submit" class="btn-login" id="btn-submit-registro">
+            <i class="fa-solid fa-user-plus"></i> CREAR CUENTA
+          </button>
+        </form>
+
+        <div style="text-align:center;margin-top:20px;">
+          <span style="font-size:12px;color:rgba(255,255,255,.3);">¿Ya tenés cuenta?</span>
+          <button onclick="mostrarLogin()" style="background:none;border:none;cursor:pointer;font-size:12px;font-weight:700;color:#60a5fa;margin-left:6px;font-family:'Inter',sans-serif;">
+            Iniciar sesión
+          </button>
         </div>
       </div>
 
@@ -451,6 +551,77 @@
   </div>
 
 </div>
+
+<style>
+  .success-msg {
+    background: rgba(5,150,105,.15);
+    border: 1px solid rgba(5,150,105,.3);
+    color: #6ee7b7;
+    border-radius: 10px;
+    padding: 11px 14px;
+    font-size: 13px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  [data-theme="light"] .success-msg { color: #065f46; background: #d1fae5; border-color: #6ee7b7; }
+  [data-theme="light"] #panel-login button[onclick],
+  [data-theme="light"] #panel-registro button[onclick] { color: #1a56db; }
+  [data-theme="light"] #panel-login span,
+  [data-theme="light"] #panel-registro span { color: #4a5578 !important; }
+
+  /* ── Selector de rol ── */
+  .rol-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+  .rol-btn {
+    padding: 10px 8px;
+    border-radius: 10px;
+    border: 1.5px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.04);
+    color: rgba(255,255,255,.45);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .rol-btn:hover {
+    border-color: rgba(96,165,250,.35);
+    color: rgba(255,255,255,.75);
+    background: rgba(96,165,250,.08);
+  }
+  .rol-btn.active {
+    border-color: #60a5fa;
+    background: rgba(96,165,250,.15);
+    color: #93c5fd;
+  }
+  .rol-desc {
+    font-size: 11.5px;
+    color: rgba(255,255,255,.3);
+    margin-bottom: 16px;
+    text-align: center;
+  }
+  [data-theme="light"] .rol-btn {
+    border-color: #c7d2fe;
+    background: #f0f4ff;
+    color: #4a5578;
+  }
+  [data-theme="light"] .rol-btn.active {
+    border-color: #1a56db;
+    background: #dde5ff;
+    color: #1a56db;
+  }
+  [data-theme="light"] .rol-desc { color: #4a5578; }
+</style>
 
 <script>
 (function(){
@@ -467,6 +638,72 @@
     localStorage.setItem('laab-theme', n);
     syncIcon(n);
   };
+
+  window.seleccionarRol = function(rol) {
+    document.getElementById('rol-input').value = rol;
+
+    // Desactivar todos los botones
+    ['paciente','doctor','admin'].forEach(function(r) {
+      var btn = document.getElementById('btn-' + r);
+      if (btn) btn.classList.remove('active');
+      var desc = document.getElementById('desc-' + r);
+      if (desc) desc.style.display = 'none';
+    });
+
+    // Activar el botón y descripción del rol seleccionado
+    var btnActivo = document.getElementById('btn-' + rol);
+    if (btnActivo) btnActivo.classList.add('active');
+    var descActiva = document.getElementById('desc-' + rol);
+    if (descActiva) descActiva.style.display = 'block';
+
+    // Ocultar todos los bloques de campos específicos
+    document.getElementById('campos-paciente').style.display  = 'none';
+    document.getElementById('campos-doctor').style.display    = 'none';
+    document.getElementById('campos-codigo').style.display    = 'none';
+
+    // Limpiar required dinámicos
+    var dniInput    = document.getElementById('input-dni');
+    var matInput    = document.getElementById('input-matricula');
+    var espInput    = document.getElementById('input-especialidad');
+    var codigoInput = document.getElementById('input-codigo');
+    var labelCodigo = document.getElementById('label-codigo');
+    [dniInput, matInput, espInput, codigoInput].forEach(function(el) {
+      if (el) el.removeAttribute('required');
+    });
+
+    // Mostrar campos y asignar required según el rol
+    if (rol === 'paciente') {
+      document.getElementById('campos-paciente').style.display = 'block';
+      if (dniInput) dniInput.setAttribute('required', '');
+
+    } else if (rol === 'doctor') {
+      document.getElementById('campos-doctor').style.display = 'block';
+      if (matInput) matInput.setAttribute('required', '');
+      if (espInput) espInput.setAttribute('required', '');
+
+    } else if (rol === 'admin') {
+      document.getElementById('campos-codigo').style.display = 'block';
+      if (codigoInput) codigoInput.setAttribute('required', '');
+      if (labelCodigo) labelCodigo.textContent = 'CÓDIGO DE ADMINISTRADOR';
+    }
+  };
+
+  window.mostrarRegistro = function(){
+    document.getElementById('panel-login').style.display    = 'none';
+    document.getElementById('panel-registro').style.display = 'block';
+  };
+  window.mostrarLogin = function(){
+    document.getElementById('panel-registro').style.display = 'none';
+    document.getElementById('panel-login').style.display    = 'block';
+  };
+
+  window.addEventListener('DOMContentLoaded', function(){
+    {% if show_registro %}
+    window.mostrarRegistro();
+    {% endif %}
+    // Restaurar rol seleccionado (ej: tras error de validación)
+    window.seleccionarRol('{{ reg_rol|default:"paciente" }}');
+  });
 })();
 </script>
 </body>
