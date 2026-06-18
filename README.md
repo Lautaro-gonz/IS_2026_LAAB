@@ -141,7 +141,65 @@ Estas son las dos preguntas que le haríamos al Product Owner en la próxima Spr
 *Por qué la preguntamos:* el éxito del sistema no es que funcione técnicamente, sino que la clínica pueda abandonar el proceso manual. Si la secretaria todavía necesita el Excel para completar información que el sistema no muestra, el reemplazo no es real.
  
 ---
+## Mejora integradora
 
+### Problema que resolvimos
+El sistema contaba con el patrón Observer implementado en logica.py 
+(EmailObservador y SMSObservador), pero ambas clases solo ejecutaban 
+un print() en la consola del servidor. Las notificaciones se disparaban 
+correctamente pero eran invisibles para el usuario y no quedaba ningún 
+historial. Además, el precio de las consultas estaba hardcodeado en 
+$10.000 sin posibilidad de actualización.
+
+### Qué agregamos
+
+*1. Sistema de notificaciones con registro en base de datos*
+- Nuevo modelo NotificacionDB en turnos/models.py
+- Clase EmailObservadorDB en views.py que guarda cada notificación 
+  en la BD en lugar de imprimir en consola
+- Historial de notificaciones visible en el panel del admin y del paciente
+- Badge contador en el sidebar que muestra notificaciones no leídas
+
+*2. Ajuste de precios por inflación INDEC*
+- Nuevo modelo InflacionDB con historial de porcentajes registrados
+- Integración con la API pública oficial de datos.gob.ar para obtener 
+  el IPC mensual real del INDEC Argentina
+- Botón "Aplicar ajuste sobre turnos futuros" que actualiza el costo 
+  de todos los turnos PENDIENTE y CONFIRMADO
+
+*3. Estado AUSENTE*
+- Nuevo estado terminal en el ciclo de vida del turno
+- Transición desde CONFIRMADO cuando el paciente no se presenta
+- Permite calcular tasa de ausentismo en el análisis estadístico
+
+*4. Motivo de consulta y notas del médico*
+- Campo motivo_consulta al crear el turno
+- Campo notas_medico al completar la atención
+- Ambos campos se incluyen en la exportación CSV/TXT
+
+*5. Validación de turno vencido*
+- El sistema rechaza confirmar turnos cuya hora ya pasó
+- Notifica automáticamente al paciente para que reagende
+
+*6. Exportación de datos para Estadística*
+- Script exportar_estadistica.py que genera archivos TXT y PDF
+- 15 columnas incluyendo columnas derivadas: dias_anticipacion, 
+  franja_horaria, porcentaje_cobertura, dia_semana, mes
+
+### Rama
+feature/mejora-integradora
+
+### Cómo ejecutar
+bash
+python manage.py makemigrations
+python manage.py migrate
+python manage.py runserver
+
+
+### Nota sobre el mock
+El envío de emails se simula guardando el registro en NotificacionDB 
+y escribiendo en emails_log.txt. En producción se reemplazaría por 
+django.core.mail.send_mail() sin modificar ningún otro componente.
 
 ## Enlaces
 
